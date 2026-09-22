@@ -204,9 +204,9 @@ namespace WeaponArts
             }
 
             // scaling: tier from weapon damage, skill from the weapon's skill
-            float tierNorm = Mathf.Clamp01(WeaponTotalDamage(weapon) / Mathf.Max(1f, _cfgRefWeaponDamage.Value));
+            float tierNorm = Mathf.Clamp01(WeaponTotalDamage(weapon) / Mathf.Max(1f, Sv(_cfgRefWeaponDamage)));
             float skill = p.GetSkillFactor(a.Skill);                 // 0..1
-            float s = (0.5f + 0.5f * tierNorm) * (1f + skill * _cfgSkillPowerScale.Value);
+            float s = (0.5f + 0.5f * tierNorm) * (1f + skill * Sv(_cfgSkillPowerScale));
             float p01 = 0.5f * tierNorm + 0.5f * skill;
 
             if (cost > 0f) { if (a.UsesEitr) p.UseEitr(cost); else p.UseStamina(cost); }
@@ -222,11 +222,12 @@ namespace WeaponArts
             }
             else
             {
+                float mag = Sv(a.Mag);
                 float power = (a.Kind == ArtKind.DamageMult || a.Kind == ArtKind.Stagger)
-                    ? 1f + (a.Mag.Value - 1f) * s                    // scale the bonus part
-                    : a.Mag.Value * s;                              // DoT amount / lifesteal fraction
-                float durBonus = Mathf.Clamp(skill * _cfgSkillDurationScale.Value * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
-                float window = a.Win.Value * (1f + durBonus);
+                    ? 1f + (mag - 1f) * s                            // scale the bonus part
+                    : mag * s;                                      // DoT amount / lifesteal fraction
+                float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
+                float window = Sv(a.Win) * (1f + durBonus);
                 ZDO z = OwnZdo(p);
                 if (z != null)
                 {
@@ -249,11 +250,11 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         private int DoHeal(Player p, Art a, float p01)
         {
-            float lo = a.HLo0.Value + (a.HLo1.Value - a.HLo0.Value) * p01;
-            float hi = a.HHi0.Value + (a.HHi1.Value - a.HHi0.Value) * p01;
+            float lo = Sv(a.HLo0) + (Sv(a.HLo1) - Sv(a.HLo0)) * p01;
+            float hi = Sv(a.HHi0) + (Sv(a.HHi1) - Sv(a.HHi0)) * p01;
             if (hi < lo) hi = lo;
             float amount = UnityEngine.Random.Range(lo, hi);
-            float r2 = a.Radius.Value * a.Radius.Value;
+            float r2 = Sv(a.Radius) * Sv(a.Radius);
             Vector3 me = p.transform.position;
             int n = 0;
             List<Player> players = Player.GetAllPlayers();
@@ -282,8 +283,8 @@ namespace WeaponArts
         private int DoBurst(Player p, Art a, ItemDrop.ItemData weapon, float s)
         {
             if (weapon == null) return 0;
-            float mag = a.Mag.Value * s;
-            float r2 = a.Radius.Value * a.Radius.Value;
+            float mag = Sv(a.Mag) * s;
+            float r2 = Sv(a.Radius) * Sv(a.Radius);
             Vector3 me = p.transform.position;
             int n = 0;
             List<Character> all = Character.GetAllCharacters();
@@ -292,7 +293,7 @@ namespace WeaponArts
                 Character c = all[i];
                 if (c == null || c == p || c.IsPlayer() || c.IsDead() || c.IsTamed()) continue;
                 if ((c.transform.position - me).sqrMagnitude > r2) continue;
-                float bf = c.IsBoss() ? _cfgBossFactor.Value : 1f;
+                float bf = c.IsBoss() ? Sv(_cfgBossFactor) : 1f;
                 HitData hit = new HitData();
                 hit.m_damage = weapon.GetDamage();
                 hit.ApplyModifier(mag * bf);

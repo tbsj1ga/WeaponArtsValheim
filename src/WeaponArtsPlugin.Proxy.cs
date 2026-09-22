@@ -148,7 +148,7 @@ namespace WeaponArts
                 {
                     px.NextReapply = now + ReapplyInterval;
                     Character tank = ProxyTankChar(px.Id);
-                    if (tank != null && !tank.IsDead()) px.TauntCount = ApplyTauntHold(tank, px.TauntUntil, _cfgTauntRadius.Value);
+                    if (tank != null && !tank.IsDead()) px.TauntCount = ApplyTauntHold(tank, px.TauntUntil, Sv(_cfgTauntRadius));
                 }
                 if (_cfgProxyAnnounceReady.Value && !px.ReadyAnnounced && px.CooldownUntil > 0f && now >= px.CooldownUntil)
                 {
@@ -253,8 +253,8 @@ namespace WeaponArts
             ItemDrop.ItemData shield = ProtoItem(zdo.GetInt(ZDOVars.s_leftItem, 0));
             if (shield != null && shield.m_shared != null && shield.m_shared.m_itemType == ItemDrop.ItemData.ItemType.Shield)
             {
-                string mode = _cfgShieldMode.Value;
-                if (mode == "None" || mode == "AnyShield" || shield.m_shared.m_timedBlockBonus <= _cfgTowerParry.Value)
+                string mode = Ss(_cfgShieldMode);
+                if (mode == "None" || mode == "AnyShield" || shield.m_shared.m_timedBlockBonus <= Sv(_cfgTowerParry))
                 {
                     taunt = true; item = shield; quality = zdo.GetInt(ZDOVars.s_leftItemQuality, 1);
                     return null;   // taunt handled separately
@@ -277,13 +277,13 @@ namespace WeaponArts
             if (taunt)
             {
                 float block = item != null && item.m_shared != null ? item.m_shared.m_blockPower + Mathf.Max(0, quality - 1) * item.m_shared.m_blockPowerPerLevel : 0f;
-                float shieldNorm = Mathf.Clamp01(block / Mathf.Max(1f, _cfgTauntRefBlock.Value));
-                float durBonus = Mathf.Clamp(skill * _cfgSkillDurationScale.Value * (0.5f + 0.5f * shieldNorm), 0f, 0.5f);
-                px.TauntReduction = Mathf.Clamp(Mathf.Lerp(_cfgTauntReductionBase.Value, _cfgTauntReductionBest.Value, 0.8f * shieldNorm + 0.2f * skill), 0f, 0.9f);
-                px.TauntUntil = now + _cfgTauntDuration.Value * (1f + durBonus);
+                float shieldNorm = Mathf.Clamp01(block / Mathf.Max(1f, Sv(_cfgTauntRefBlock)));
+                float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * shieldNorm), 0f, 0.5f);
+                px.TauntReduction = Mathf.Clamp(Mathf.Lerp(Sv(_cfgTauntReductionBase), Sv(_cfgTauntReductionBest), 0.8f * shieldNorm + 0.2f * skill), 0f, 0.9f);
+                px.TauntUntil = now + Sv(_cfgTauntDuration) * (1f + durBonus);
                 px.NextReapply = now + ReapplyInterval;
                 px.ArtName = "Таунт";
-                px.TauntCount = ApplyTauntHold(p, px.TauntUntil, _cfgTauntRadius.Value);
+                px.TauntCount = ApplyTauntHold(p, px.TauntUntil, Sv(_cfgTauntRadius));
                 px.CooldownUntil = now + _cfgTauntCooldown.Value * _cfgProxyCooldownFactor.Value;
                 px.ReadyAnnounced = false;
                 Announce("Таунт за " + px.Name + ": " + px.TauntCount + " мобов");
@@ -293,18 +293,18 @@ namespace WeaponArts
             if (a == null) { Announce(px.Name + ": нет активки для оружия"); return; }
             px.ArtName = a.Name;
 
-            float tierNorm = Mathf.Clamp01(TotalDamage(item.GetDamage(quality, 0f)) / Mathf.Max(1f, _cfgRefWeaponDamage.Value));
-            float s = (0.5f + 0.5f * tierNorm) * (1f + skill * _cfgSkillPowerScale.Value);
+            float tierNorm = Mathf.Clamp01(TotalDamage(item.GetDamage(quality, 0f)) / Mathf.Max(1f, Sv(_cfgRefWeaponDamage)));
+            float s = (0.5f + 0.5f * tierNorm) * (1f + skill * Sv(_cfgSkillPowerScale));
             float p01 = 0.5f * tierNorm + 0.5f * skill;
 
             if (a.Kind == ArtKind.AoEHeal) { int n = DoHeal(p, a, p01); Announce(a.Name + " за " + px.Name + " (" + n + ")"); }
             else if (a.Kind == ArtKind.AoEBurst) { int n = DoBurst(p, a, item, s); Announce(a.Name + " за " + px.Name + " (" + n + ")"); }
             else
             {
-                float power = (a.Kind == ArtKind.DamageMult || a.Kind == ArtKind.Stagger) ? 1f + (a.Mag.Value - 1f) * s : a.Mag.Value * s;
-                float durBonus = Mathf.Clamp(skill * _cfgSkillDurationScale.Value * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
-                px.ArtHash = a.Hash; px.ArtPower = power; px.ArtUntil = now + a.Win.Value * (1f + durBonus);
-                Announce(a.Name + " за " + px.Name + ": " + a.Win.Value.ToString("0") + "с");
+                float power = (a.Kind == ArtKind.DamageMult || a.Kind == ArtKind.Stagger) ? 1f + (Sv(a.Mag) - 1f) * s : Sv(a.Mag) * s;
+                float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
+                px.ArtHash = a.Hash; px.ArtPower = power; px.ArtUntil = now + Sv(a.Win) * (1f + durBonus);
+                Announce(a.Name + " за " + px.Name + ": " + Sv(a.Win).ToString("0") + "с");
             }
             px.CooldownUntil = now + a.Cd.Value * _cfgProxyCooldownFactor.Value;
             px.ReadyAnnounced = false;

@@ -27,7 +27,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.4.0";
+        public const string Version = "0.5.0";
 
         public static WeaponArtsPlugin Instance;
 
@@ -57,6 +57,7 @@ namespace WeaponArts
                 BindConfig();
                 BindTauntConfig();
                 BindProxyConfig();
+                BindSyncConfig();
                 BindReflection();
                 BuildArts();
                 RegisterCommands();
@@ -83,6 +84,7 @@ namespace WeaponArts
             if (_disabledByErrors || !_cfgEnabled.Value) return;
             try
             {
+                if (_syncDirty) FlushSync();
                 Player p = Player.m_localPlayer;
                 if (p == null || p.IsDead()) return;
                 if (_cfgKey.Value.IsDown() && !BlockedByUI()) TryActivate(p);
@@ -95,7 +97,7 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         // helpers
         // ------------------------------------------------------------------
-        private bool Active { get { return !_disabledByErrors && _cfgEnabled.Value; } }
+        private bool Active { get { return !_disabledByErrors && Sb(_cfgEnabled); } }
 
         // Network-consistent clock shared by the actor and the target's owner.
         internal static long NowTicks()

@@ -90,11 +90,11 @@ namespace WeaponArts
         {
             ItemDrop.ItemData b = GetBlocker(p);
             ItemDrop.ItemData.SharedData s = b != null ? b.m_shared : null;
-            string mode = _cfgShieldMode.Value;
+            string mode = Ss(_cfgShieldMode);
             if (mode == "None") return true;
             if (s == null || s.m_itemType != ItemDrop.ItemData.ItemType.Shield) return false;
             if (mode == "AnyShield") return true;
-            return s.m_timedBlockBonus <= _cfgTowerParry.Value;   // tower shields do not parry
+            return s.m_timedBlockBonus <= Sv(_cfgTowerParry);   // tower shields do not parry
         }
 
         private void ForceTarget(MonsterAI ai, Character target)
@@ -123,16 +123,16 @@ namespace WeaponArts
             // scaling: shield block power (tier) + Blocking skill
             ItemDrop.ItemData b = GetBlocker(p);
             float block = b != null ? b.GetBaseBlockPower(b.m_quality) : 0f;
-            float shieldNorm = Mathf.Clamp01(block / Mathf.Max(1f, _cfgTauntRefBlock.Value));
+            float shieldNorm = Mathf.Clamp01(block / Mathf.Max(1f, Sv(_cfgTauntRefBlock)));
             float skill = p.GetSkillFactor(Skills.SkillType.Blocking);
-            float durBonus = Mathf.Clamp(skill * _cfgSkillDurationScale.Value * (0.5f + 0.5f * shieldNorm), 0f, 0.5f);
+            float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * shieldNorm), 0f, 0.5f);
 
-            _tauntReduction = Mathf.Clamp(Mathf.Lerp(_cfgTauntReductionBase.Value, _cfgTauntReductionBest.Value, 0.8f * shieldNorm + 0.2f * skill), 0f, 0.9f);
-            _tauntUntil = now + _cfgTauntDuration.Value * (1f + durBonus);
+            _tauntReduction = Mathf.Clamp(Mathf.Lerp(Sv(_cfgTauntReductionBase), Sv(_cfgTauntReductionBest), 0.8f * shieldNorm + 0.2f * skill), 0f, 0.9f);
+            _tauntUntil = now + Sv(_cfgTauntDuration) * (1f + durBonus);
             _tauntCdUntil = now + _cfgTauntCooldown.Value;
             _gcdUntil = now + _cfgGlobalCooldown.Value;
             _tauntNextReapply = now + ReapplyInterval;
-            _tauntCount = ApplyTauntHold(p, _tauntUntil, _cfgTauntRadius.Value);
+            _tauntCount = ApplyTauntHold(p, _tauntUntil, Sv(_cfgTauntRadius));
             Message(p, "Таунт! (" + _tauntCount + ")");
             Debug("Taunt: pulled " + _tauntCount + ", reduction " + FormatTime(_tauntReduction) + ", shield " + FormatTime(shieldNorm));
         }
@@ -152,8 +152,8 @@ namespace WeaponArts
             {
                 Character c = all[i];
                 if (c == null || c == tank || c.IsDead() || c.IsPlayer()) continue;
-                if (!_cfgTauntTamed.Value && c.IsTamed()) continue;
-                if (c.IsBoss() && !_cfgTauntBosses.Value) continue;
+                if (!Sb(_cfgTauntTamed) && c.IsTamed()) continue;
+                if (c.IsBoss() && !Sb(_cfgTauntBosses)) continue;
                 if ((c.transform.position - me).sqrMagnitude > r2) continue;
                 MonsterAI ai = c.GetComponent<MonsterAI>();
                 if (ai == null) continue;
@@ -162,7 +162,7 @@ namespace WeaponArts
 
                 if (!nv.IsOwner()) nv.ClaimOwnership();
                 ForceTarget(ai, tank);
-                if (_cfgTauntAggravate.Value && ai.IsAggravatable() && !ai.IsAggravated())
+                if (Sb(_cfgTauntAggravate) && ai.IsAggravatable() && !ai.IsAggravated())
                     ai.SetAggravated(true, BaseAI.AggravatedReason.Damage);
 
                 Hold h; h.Until = until; h.Target = tankId;
@@ -187,7 +187,7 @@ namespace WeaponArts
         {
             if (TauntActive)
             {
-                if (now >= _tauntNextReapply) { _tauntNextReapply = now + ReapplyInterval; _tauntCount = ApplyTauntHold(p, _tauntUntil, _cfgTauntRadius.Value); }
+                if (now >= _tauntNextReapply) { _tauntNextReapply = now + ReapplyInterval; _tauntCount = ApplyTauntHold(p, _tauntUntil, Sv(_cfgTauntRadius)); }
             }
             if (_tainted.Count > 0)
             {

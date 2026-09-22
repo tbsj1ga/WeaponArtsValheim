@@ -60,7 +60,7 @@ namespace WeaponArts
                     Art a; float power;
                     if (!p.AttackerArt(attacker, out a, out power)) return;
                     bool boss = __instance.IsBoss();
-                    float bf = boss ? p._cfgBossFactor.Value : 1f;
+                    float bf = boss ? p.Sv(p._cfgBossFactor) : 1f;
 
                     switch (a.Kind)
                     {
@@ -93,7 +93,7 @@ namespace WeaponArts
                     if (attacker == null) return;
                     Art a; float frac;
                     if (!p.AttackerArt(attacker, out a, out frac) || a.Kind != ArtKind.Vampirism || frac <= 0f) return;
-                    float bf = __instance.IsBoss() ? p._cfgBossFactor.Value : 1f;
+                    float bf = __instance.IsBoss() ? p.Sv(p._cfgBossFactor) : 1f;
                     float heal = dealt * frac * bf;
                     if (heal <= 0f) return;
 
