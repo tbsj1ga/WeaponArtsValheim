@@ -286,6 +286,7 @@ namespace WeaponArts
                 px.SinceMs = WorldMs();
                 px.ArtName = "Таунт";
                 px.TauntCount = ApplyTauntHold(p, px.TauntUntil, Sv(_cfgTauntRadius), px.SinceMs);
+                try { PlayActivationEffects(p, item != null && item.m_shared != null ? item.m_shared.m_blockEffect : null); } catch (Exception e) { Fail("proxy effects", e); }
                 px.CooldownUntil = now + _cfgTauntCooldown.Value * _cfgProxyCooldownFactor.Value;
                 px.ReadyAnnounced = false;
                 Announce("Таунт за " + px.Name + ": " + px.TauntCount + " мобов");

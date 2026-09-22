@@ -159,6 +159,7 @@ namespace WeaponArts
             _tauntSinceMs = WorldMs();
             _tauntCount = ApplyTauntHold(p, _tauntUntil, Sv(_cfgTauntRadius), _tauntSinceMs);
             if (_tauntCount > 0) p.RaiseSkill(Skills.SkillType.Blocking, Mathf.Min(_cfgTauntSkillCap.Value, _cfgTauntSkillGain.Value * _tauntCount));
+            try { PlayActivationEffects(p, b != null && b.m_shared != null ? b.m_shared.m_blockEffect : null); } catch (Exception e) { Fail("effects", e); }
             Message(p, "Таунт! (" + _tauntCount + ")");
             Debug("Taunt: pulled " + _tauntCount + ", reduction " + FormatTime(_tauntReduction) + ", shield " + FormatTime(shieldNorm));
         }

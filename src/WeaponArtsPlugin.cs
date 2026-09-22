@@ -27,7 +27,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.9.0";
+        public const string Version = "0.10.0";
 
         public static WeaponArtsPlugin Instance;
 
@@ -59,6 +59,7 @@ namespace WeaponArts
                 BindProxyConfig();
                 BindSyncConfig();
                 BindBleedConfig();
+                BindEffectsConfig();
                 BindReflection();
                 BuildArts();
                 RegisterCommands();

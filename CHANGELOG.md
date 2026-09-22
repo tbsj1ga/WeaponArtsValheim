@@ -2,6 +2,13 @@
 
 Версия задаётся в одном месте — `WeaponArtsPlugin.Version` в `src/WeaponArtsPlugin.cs`.
 
+## 0.10.0 — Эффекты активации таунта
+
+- Порт эффектов из ShieldTaunt: звук и визуал при таунте, только ванильные префабы
+  (видят и клиенты без мода). Конфиг 06 Taunt Effects: Sound (Block/Perfect/None),
+  Visual (None/GuardianPower/имя префаба: fx_eikthyr_stomp, fx_Adrenaline1,
+  fx_guardstone_activate, vfx_perfectblock, fx_gjall_taunt). Работает и через прокси.
+
 ## 0.9.0 — Физическое кровотечение
 
 - Кровотечение (топор 1H) — теперь отдельный физический тикающий DoT (ArtKind.Bleed),
