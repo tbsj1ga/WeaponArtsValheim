@@ -19,22 +19,33 @@ namespace WeaponArts
             if (Minimap.instance != null && Minimap.IsOpen()) return;
             try
             {
-                Art a = CurrentArt(Player.m_localPlayer);
-                if (a == null) return;
-                EnsureStyles();
-
-                float cd = CooldownLeft(a);
-                string state;
+                Player pl = Player.m_localPlayer;
+                string name, desc, state;
                 Color c;
-                if (cd > 0f) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = new Color(0.8f, 0.8f, 0.8f); }
-                else { state = "готова"; c = new Color(0.6f, 1f, 0.6f); }
-                _nameStyle.normal.textColor = c;
+                Color grey = new Color(0.8f, 0.8f, 0.8f), green = new Color(0.6f, 1f, 0.6f), amber = new Color(1f, 0.85f, 0.3f);
 
+                if (TauntShieldEquipped(pl))
+                {
+                    name = "Таунт"; desc = "башенный щит: стянуть мобов + резист";
+                    if (TauntActive) { state = "активна " + FormatTime(_tauntUntil - Time.time) + "с (" + _tauntCount + ")"; c = amber; }
+                    else { float cd = TauntCooldownLeft(); if (cd > 0f) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = grey; } else { state = "готова"; c = green; } }
+                }
+                else
+                {
+                    Art a = CurrentArt(pl);
+                    if (a == null) return;
+                    name = a.Name; desc = a.Desc;
+                    float cd = CooldownLeft(a);
+                    if (cd > 0f) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = grey; } else { state = "готова"; c = green; }
+                }
+
+                EnsureStyles();
+                _nameStyle.normal.textColor = c;
                 float w = 360f;
                 float x = (Screen.width - w) * 0.5f;
                 float y = Screen.height * 0.86f;
-                GUI.Label(new Rect(x, y, w, 22f), a.Name + "  —  " + state, _nameStyle);
-                GUI.Label(new Rect(x, y + 20f, w, 20f), a.Desc, _descStyle);
+                GUI.Label(new Rect(x, y, w, 22f), name + "  —  " + state, _nameStyle);
+                GUI.Label(new Rect(x, y + 20f, w, 20f), desc, _descStyle);
             }
             catch (Exception e) { Fail("OnGUI", e); }
         }

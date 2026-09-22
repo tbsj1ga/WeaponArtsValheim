@@ -8,6 +8,30 @@ namespace WeaponArts
     public partial class WeaponArtsPlugin
     {
         // ------------------------------------------------------------------
+        // taunt: hold the pulled monsters on the tank (owner side)
+        // ------------------------------------------------------------------
+        // MonsterAI.UpdateTarget runs on the owner of the monster (us, since we claimed it);
+        // overwrite the recomputed target with the tank while the hold lasts.
+        [HarmonyPatch(typeof(MonsterAI), "UpdateTarget")]
+        private static class MonsterAI_UpdateTarget_Patch
+        {
+            private static void Postfix(MonsterAI __instance)
+            {
+                WeaponArtsPlugin p = Instance;
+                if (p == null || p._tainted.Count == 0 || __instance == null) return;
+                try
+                {
+                    Character c = __instance.GetComponent<Character>();
+                    if (c == null) return;
+                    Character tank = p.HeldTarget(c.GetZDOID());
+                    if (tank == null || tank.IsDead()) return;
+                    if (__instance.GetTargetCreature() != tank) p.ForceTarget(__instance, tank);
+                }
+                catch (Exception e) { p.Fail("UpdateTarget", e); }
+            }
+        }
+
+        // ------------------------------------------------------------------
         // apply the attacker's art on the OWNER of the struck creature
         // ------------------------------------------------------------------
         // Character.RPC_Damage runs on the owner of the victim; the attacker's active art is read
@@ -24,6 +48,12 @@ namespace WeaponArts
                 if (p == null || !p.Active || __instance == null || hit == null) return;
                 try
                 {
+                    // taunt: reduce damage taken by the local tank while the taunt holds
+                    if (p.TauntActive && __instance == Player.m_localPlayer)
+                    {
+                        float red = Mathf.Clamp(p._tauntReduction, 0f, 0.9f);
+                        if (red > 0f) hit.ApplyModifier(1f - red);
+                    }
                     if (__instance.IsPlayer()) return;                 // PvP-safe: creatures only
                     Character attacker = hit.GetAttacker();
                     if (attacker == null || !attacker.IsPlayer()) return;

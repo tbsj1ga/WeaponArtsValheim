@@ -158,6 +158,7 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         private void TryActivate(Player p)
         {
+            if (TauntShieldEquipped(p)) { ActivateTaunt(p); return; }   // tower shield wins over the 1H art
             ItemDrop.ItemData weapon = p.GetCurrentWeapon();
             Art a = ArtFor(weapon);
             if (a == null) { Message(p, "Нет активки для этого оружия"); return; }
