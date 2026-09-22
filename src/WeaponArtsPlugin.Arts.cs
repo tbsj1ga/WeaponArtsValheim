@@ -11,7 +11,7 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         // art model + registry
         // ------------------------------------------------------------------
-        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism }
+        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst }
 
         internal class Art
         {
@@ -24,6 +24,9 @@ namespace WeaponArts
             public int Hand;            // 0 = any, 1 = one-handed, 2 = two-handed
             public bool UsesEitr;       // else stamina
             public ConfigEntry<float> Mag, Win, Cd, Cost;
+            // instant arts (AoEHeal / AoEBurst)
+            public ConfigEntry<float> Radius, HLo0, HLo1, HHi0, HHi1;
+            public bool IncludeSelf;
         }
 
         private readonly List<Art> _arts = new List<Art>();
@@ -40,6 +43,42 @@ namespace WeaponArts
             a.Win = Config.Bind(s, "Window", win, new ConfigDescription("Seconds the art lasts (before skill/tier scaling; +50% cap).", new AcceptableValueRange<float>(0.5f, 30f)));
             a.Cd = Config.Bind(s, "Cooldown", cd, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(1f, 600f)));
             a.Cost = Config.Bind(s, "Cost", cost, new ConfigDescription("Stamina (or eitr) spent.", new AcceptableValueRange<float>(0f, 200f)));
+            _arts.Add(a); _artByHash[a.Hash] = a;
+            return a;
+        }
+
+        // AoE heal: rolls random(lo, hi) once; the window [lo0..lo1],[hi0..hi1] grows with
+        // weapon tier + skill (see TASK-weapon-arts.md §5.1). Not a timed window.
+        private Art AddHeal(string id, string name, string desc, Skills.SkillType skill, int hand,
+                            float cd, float cost, float lo0, float lo1, float hi0, float hi1, float radius, bool self)
+        {
+            Art a = new Art();
+            a.Id = id; a.Hash = id.GetStableHashCode(); a.Name = name; a.Desc = desc;
+            a.Kind = ArtKind.AoEHeal; a.Skill = skill; a.Hand = hand; a.IncludeSelf = self;
+            string s = "03 Arts - " + id;
+            a.Cd = Config.Bind(s, "Cooldown", cd, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(1f, 600f)));
+            a.Cost = Config.Bind(s, "Cost", cost, new ConfigDescription("Stamina spent.", new AcceptableValueRange<float>(0f, 200f)));
+            a.Radius = Config.Bind(s, "Radius", radius, new ConfigDescription("Heal radius, m.", new AcceptableValueRange<float>(2f, 40f)));
+            a.HLo0 = Config.Bind(s, "HealLoMin", lo0, "Lower bound of the heal roll at min tier/skill.");
+            a.HLo1 = Config.Bind(s, "HealLoMax", lo1, "Lower bound at max tier/skill.");
+            a.HHi0 = Config.Bind(s, "HealHiMin", hi0, "Upper bound of the heal roll at min tier/skill.");
+            a.HHi1 = Config.Bind(s, "HealHiMax", hi1, "Upper bound at max tier/skill.");
+            _arts.Add(a); _artByHash[a.Hash] = a;
+            return a;
+        }
+
+        // AoE burst: instant damage to creatures around you, Mag = fraction of weapon damage.
+        private Art AddBurst(string id, string name, string desc, Skills.SkillType skill, int hand,
+                             float mag, float cd, float cost, float radius)
+        {
+            Art a = new Art();
+            a.Id = id; a.Hash = id.GetStableHashCode(); a.Name = name; a.Desc = desc;
+            a.Kind = ArtKind.AoEBurst; a.Skill = skill; a.Hand = hand;
+            string s = "03 Arts - " + id;
+            a.Mag = Config.Bind(s, "Magnitude", mag, "Damage as a fraction of weapon damage (1.3 = 130%).");
+            a.Cd = Config.Bind(s, "Cooldown", cd, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(1f, 600f)));
+            a.Cost = Config.Bind(s, "Cost", cost, new ConfigDescription("Stamina spent.", new AcceptableValueRange<float>(0f, 200f)));
+            a.Radius = Config.Bind(s, "Radius", radius, new ConfigDescription("Burst radius, m.", new AcceptableValueRange<float>(1f, 20f)));
             _arts.Add(a); _artByHash[a.Hash] = a;
             return a;
         }
@@ -62,6 +101,15 @@ namespace WeaponArts
             Add("Fury", "Ярость", "кулаки: критический урон", ArtKind.DamageMult, Un, 0, 1.5f, 4f, 36f, 25f, false);
             Add("Focus", "Фокус", "лук: критические выстрелы", ArtKind.DamageMult, Bo, 0, 1.8f, 4f, 40f, 20f, false);
             Add("PiercingBolts", "Бронебой", "арбалет: болты сквозь броню", ArtKind.DamageMult, Cr, 0, 1.5f, 4f, 40f, 20f, false);
+
+            // Phase 2: heals, AoE burst, eitr surge.
+            Skills.SkillType Cl = Skills.SkillType.Clubs, El = Skills.SkillType.ElementalMagic, Bl = Skills.SkillType.BloodMagic;
+            AddHeal("Rally", "Клич", "кувалда 2H: хил себе и союзникам", Cl, 2, 60f, 40f, 15f, 60f, 25f, 100f, 10f, true);
+            AddHeal("Mend", "Исцеление", "булава 1H: хил только союзникам", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 8f, false);
+            Add("EitrSurgeElem", "Вспышка эйтра", "посох стихий: +магический урон", ArtKind.DamageMult, El, 0, 1.4f, 4f, 50f, 30f, true);
+            Add("EitrSurgeBlood", "Вспышка эйтра", "посох крови: +магический урон", ArtKind.DamageMult, Bl, 0, 1.4f, 4f, 50f, 30f, true);
+            // Whirlwind (кистень): flail skillType не подтверждён (в ваниле может совпасть с
+            // Clubs 2H и конфликтовать с Rally) — регистрируется после проверки в игре.
         }
 
         // ------------------------------------------------------------------
@@ -133,32 +181,102 @@ namespace WeaponArts
             float tierNorm = Mathf.Clamp01(WeaponTotalDamage(weapon) / Mathf.Max(1f, _cfgRefWeaponDamage.Value));
             float skill = p.GetSkillFactor(a.Skill);                 // 0..1
             float s = (0.5f + 0.5f * tierNorm) * (1f + skill * _cfgSkillPowerScale.Value);
-            float durBonus = Mathf.Clamp(skill * _cfgSkillDurationScale.Value * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
-
-            float power;
-            if (a.Kind == ArtKind.DamageMult || a.Kind == ArtKind.Stagger)
-                power = 1f + (a.Mag.Value - 1f) * s;                 // scale the bonus part
-            else
-                power = a.Mag.Value * s;                             // DoT amount / lifesteal fraction
-
-            float window = a.Win.Value * (1f + durBonus);
+            float p01 = 0.5f * tierNorm + 0.5f * skill;
 
             if (cost > 0f) { if (a.UsesEitr) p.UseEitr(cost); else p.UseStamina(cost); }
 
-            ZDO z = OwnZdo(p);
-            if (z != null)
+            string info;
+            if (a.Kind == ArtKind.AoEHeal)
             {
-                z.Set(ZdoArt, a.Hash, false);
-                z.Set(ZdoUntil, NowTicks() + (long)(window * TimeSpan.TicksPerSecond));
-                z.Set(ZdoPower, power);
+                info = a.Name + " (" + DoHeal(p, a, p01) + ")";
+            }
+            else if (a.Kind == ArtKind.AoEBurst)
+            {
+                info = a.Name + " (" + DoBurst(p, a, weapon, s) + ")";
+            }
+            else
+            {
+                float power = (a.Kind == ArtKind.DamageMult || a.Kind == ArtKind.Stagger)
+                    ? 1f + (a.Mag.Value - 1f) * s                    // scale the bonus part
+                    : a.Mag.Value * s;                              // DoT amount / lifesteal fraction
+                float durBonus = Mathf.Clamp(skill * _cfgSkillDurationScale.Value * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
+                float window = a.Win.Value * (1f + durBonus);
+                ZDO z = OwnZdo(p);
+                if (z != null)
+                {
+                    z.Set(ZdoArt, a.Hash, false);
+                    z.Set(ZdoUntil, NowTicks() + (long)(window * TimeSpan.TicksPerSecond));
+                    z.Set(ZdoPower, power);
+                }
+                info = a.Name + "!";
             }
 
             _cooldownUntil[a.Id] = now + a.Cd.Value;
             _gcdUntil = now + _cfgGlobalCooldown.Value;
             _lastArtId = a.Id; _lastActivated = now;
+            Message(p, info);
+            Debug("Activated " + a.Id + " (tier " + FormatTime(tierNorm) + ", skill " + FormatTime(skill) + ")");
+        }
 
-            Message(p, a.Name + "!");
-            Debug("Activated " + a.Id + ": power " + FormatTime(power) + ", window " + FormatTime(window) + "s (tier " + FormatTime(tierNorm) + ", skill " + FormatTime(skill) + ")");
+        // ------------------------------------------------------------------
+        // instant arts
+        // ------------------------------------------------------------------
+        private int DoHeal(Player p, Art a, float p01)
+        {
+            float lo = a.HLo0.Value + (a.HLo1.Value - a.HLo0.Value) * p01;
+            float hi = a.HHi0.Value + (a.HHi1.Value - a.HHi0.Value) * p01;
+            if (hi < lo) hi = lo;
+            float amount = UnityEngine.Random.Range(lo, hi);
+            float r2 = a.Radius.Value * a.Radius.Value;
+            Vector3 me = p.transform.position;
+            int n = 0;
+            List<Player> players = Player.GetAllPlayers();
+            for (int i = 0; i < players.Count; i++)
+            {
+                Player q = players[i];
+                if (q == null || q.IsDead()) continue;
+                if (q == p && !a.IncludeSelf) continue;
+                if ((q.transform.position - me).sqrMagnitude > r2) continue;
+                HealChar(q, amount);
+                n++;
+            }
+            Debug(a.Id + ": heal " + FormatTime(amount) + " to " + n + " (roll " + FormatTime(lo) + "-" + FormatTime(hi) + ")");
+            return n;
+        }
+
+        private static void HealChar(Character c, float amt)
+        {
+            if (c == null || amt <= 0f) return;
+            ZNetView nv = c.GetComponent<ZNetView>();
+            if (nv == null || !nv.IsValid()) return;
+            if (nv.IsOwner()) c.Heal(amt, true);
+            else nv.InvokeRPC(nv.GetZDO().GetOwner(), "Heal", amt, false);
+        }
+
+        private int DoBurst(Player p, Art a, ItemDrop.ItemData weapon, float s)
+        {
+            if (weapon == null) return 0;
+            float mag = a.Mag.Value * s;
+            float r2 = a.Radius.Value * a.Radius.Value;
+            Vector3 me = p.transform.position;
+            int n = 0;
+            List<Character> all = Character.GetAllCharacters();
+            for (int i = 0; i < all.Count; i++)
+            {
+                Character c = all[i];
+                if (c == null || c == p || c.IsPlayer() || c.IsDead() || c.IsTamed()) continue;
+                if ((c.transform.position - me).sqrMagnitude > r2) continue;
+                float bf = c.IsBoss() ? _cfgBossFactor.Value : 1f;
+                HitData hit = new HitData();
+                hit.m_damage = weapon.GetDamage();
+                hit.ApplyModifier(mag * bf);
+                hit.SetAttacker(p);
+                hit.m_point = c.transform.position;
+                hit.m_dir = (c.transform.position - me).normalized;
+                c.Damage(hit);
+                n++;
+            }
+            return n;
         }
 
         // Cooldown remaining for the HUD; <=0 means ready.
