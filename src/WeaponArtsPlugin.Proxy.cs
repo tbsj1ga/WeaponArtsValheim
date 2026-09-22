@@ -55,6 +55,7 @@ namespace WeaponArts
             public float TauntReduction;
             public int TauntCount;
             public float NextReapply;
+            public long SinceMs;
         }
 
         private readonly Dictionary<ZDOID, Proxy> _proxies = new Dictionary<ZDOID, Proxy>();
@@ -148,7 +149,7 @@ namespace WeaponArts
                 {
                     px.NextReapply = now + ReapplyInterval;
                     Character tank = ProxyTankChar(px.Id);
-                    if (tank != null && !tank.IsDead()) px.TauntCount = ApplyTauntHold(tank, px.TauntUntil, Sv(_cfgTauntRadius));
+                    if (tank != null && !tank.IsDead()) px.TauntCount = ApplyTauntHold(tank, px.TauntUntil, Sv(_cfgTauntRadius), px.SinceMs);
                 }
                 if (_cfgProxyAnnounceReady.Value && !px.ReadyAnnounced && px.CooldownUntil > 0f && now >= px.CooldownUntil)
                 {
@@ -282,8 +283,9 @@ namespace WeaponArts
                 px.TauntReduction = Mathf.Clamp(Mathf.Lerp(Sv(_cfgTauntReductionBase), Sv(_cfgTauntReductionBest), 0.8f * shieldNorm + 0.2f * skill), 0f, 0.9f);
                 px.TauntUntil = now + Sv(_cfgTauntDuration) * (1f + durBonus);
                 px.NextReapply = now + ReapplyInterval;
+                px.SinceMs = WorldMs();
                 px.ArtName = "Таунт";
-                px.TauntCount = ApplyTauntHold(p, px.TauntUntil, Sv(_cfgTauntRadius));
+                px.TauntCount = ApplyTauntHold(p, px.TauntUntil, Sv(_cfgTauntRadius), px.SinceMs);
                 px.CooldownUntil = now + _cfgTauntCooldown.Value * _cfgProxyCooldownFactor.Value;
                 px.ReadyAnnounced = false;
                 Announce("Таунт за " + px.Name + ": " + px.TauntCount + " мобов");

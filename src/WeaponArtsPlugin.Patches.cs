@@ -65,6 +65,8 @@ namespace WeaponArts
                     switch (a.Kind)
                     {
                         case ArtKind.DamageMult:
+                            // crit arts do not stack on top of a sneak/backstab hit
+                            if (a.NoStackSneak && hit.m_backstabBonus > 1f) break;
                             hit.ApplyModifier(1f + (power - 1f) * bf);
                             break;
                         case ArtKind.Dot:

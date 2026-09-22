@@ -27,7 +27,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.6.0";
+        public const string Version = "0.7.0";
 
         public static WeaponArtsPlugin Instance;
 
@@ -74,7 +74,7 @@ namespace WeaponArts
 
         private void OnDestroy()
         {
-            try { if (_harmony != null) _harmony.UnpatchSelf(); }
+            try { ReleaseAllStraight(); if (_harmony != null) _harmony.UnpatchSelf(); }
             catch (Exception e) { Logger.LogWarning("OnDestroy: " + e.Message); }
             if (Instance == this) Instance = null;
         }

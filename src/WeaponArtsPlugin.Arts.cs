@@ -27,6 +27,7 @@ namespace WeaponArts
             // instant arts (AoEHeal / AoEBurst)
             public ConfigEntry<float> Radius, HLo0, HLo1, HHi0, HHi1;
             public bool IncludeSelf;
+            public bool NoStackSneak;   // crit arts: do not add on top of a backstab
         }
 
         private readonly List<Art> _arts = new List<Art>();
@@ -98,8 +99,8 @@ namespace WeaponArts
             Add("Impale", "Пронзание", "пика: мощный выпад", ArtKind.DamageMult, Sp, 2, 1.60f, 3f, 40f, 30f, false);
             Add("Crushing", "Дробящий", "атгейр: удары вгоняют в стаггер", ArtKind.Stagger, Po, 0, 2.5f, 4f, 40f, 30f, false);
             Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 4f, 32f, 25f, false);
-            Add("Fury", "Ярость", "кулаки: критический урон", ArtKind.DamageMult, Un, 0, 1.5f, 4f, 36f, 25f, false);
-            Add("Focus", "Фокус", "лук: критические выстрелы", ArtKind.DamageMult, Bo, 0, 1.8f, 4f, 40f, 20f, false);
+            Add("Fury", "Ярость", "кулаки: критический урон", ArtKind.DamageMult, Un, 0, 1.5f, 4f, 36f, 25f, false).NoStackSneak = true;
+            Add("Focus", "Фокус", "лук: критические выстрелы", ArtKind.DamageMult, Bo, 0, 1.8f, 4f, 40f, 20f, false).NoStackSneak = true;
             Add("PiercingBolts", "Бронебой", "арбалет: болты сквозь броню", ArtKind.DamageMult, Cr, 0, 1.5f, 4f, 40f, 20f, false);
 
             // Phase 2: heals, AoE burst, eitr surge.
