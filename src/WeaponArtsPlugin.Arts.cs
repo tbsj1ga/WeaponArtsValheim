@@ -11,7 +11,7 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         // art model + registry
         // ------------------------------------------------------------------
-        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst, Pierce }
+        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst, Pierce, Bleed }
 
         internal class Art
         {
@@ -94,7 +94,7 @@ namespace WeaponArts
             Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.35f, 4f, 36f, 30f, false);
             Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.15f, 4f, 40f, 25f, false);
             Add("Rend", "Рассечение", "боевой топор: игнор брони цели (доля)", ArtKind.Pierce, Ax, 2, 0.4f, 4f, 36f, 30f, false);
-            Add("Bleed", "Кровотечение", "топор 1H: DoT на ударах", ArtKind.Dot, Ax, 1, 12f, 4f, 32f, 25f, false);
+            Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 10f, 4f, 32f, 25f, false);
             Add("Pierce", "Пробитие", "копьё: игнор брони (доля)", ArtKind.Pierce, Sp, 1, 0.5f, 4f, 32f, 25f, false);
             Add("Impale", "Пронзание", "пика: сильный игнор брони (доля)", ArtKind.Pierce, Sp, 2, 0.8f, 3f, 40f, 30f, false);
             Add("Crushing", "Дробящий", "атгейр: удары вгоняют в стаггер", ArtKind.Stagger, Po, 0, 2.5f, 4f, 40f, 30f, false);

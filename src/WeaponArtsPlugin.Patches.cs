@@ -50,6 +50,7 @@ namespace WeaponArts
             private static void Prefix(Character __instance, HitData hit, out float __state)
             {
                 __state = -1f;
+                if (s_bleedTick) { s_penActive = true; s_penFraction = 1f; return; }   // bleed tick: bypass armor, no art
                 s_penActive = false;                                   // clean per hit
                 WeaponArtsPlugin p = Instance;
                 if (p == null || !p.Active || __instance == null || hit == null) return;
@@ -77,7 +78,10 @@ namespace WeaponArts
                             hit.ApplyModifier(1f + (power - 1f) * bf);
                             break;
                         case ArtKind.Dot:
-                            hit.m_damage.m_poison += power * bf;        // applied as poison DoT
+                            hit.m_damage.m_poison += power * bf;        // poison DoT (knives)
+                            break;
+                        case ArtKind.Bleed:
+                            p.RegisterBleed(__instance, power * bf, hit.m_attacker);   // physical DoT (axe)
                             break;
                         case ArtKind.Stagger:
                             if (!boss) hit.m_staggerMultiplier *= power; // bosses are stagger-immune
