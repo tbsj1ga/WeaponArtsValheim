@@ -146,11 +146,36 @@ namespace WeaponArts
             return ArtFor(p.GetCurrentWeapon());
         }
 
+        internal static float TotalDamage(HitData.DamageTypes d)
+        {
+            return d.m_blunt + d.m_slash + d.m_pierce + d.m_fire + d.m_frost + d.m_lightning + d.m_poison + d.m_spirit;
+        }
+
         private static float WeaponTotalDamage(ItemDrop.ItemData w)
         {
-            if (w == null) return 0f;
-            HitData.DamageTypes d = w.GetDamage();
-            return d.m_blunt + d.m_slash + d.m_pierce + d.m_fire + d.m_frost + d.m_lightning + d.m_poison + d.m_spirit;
+            return w == null ? 0f : TotalDamage(w.GetDamage());
+        }
+
+        // The attacker's active art and its baked power: from the attacker's own ZDO (modded),
+        // else from the proxy table if we are the provider (modless). Used by the damage patches.
+        internal bool AttackerArt(Character attacker, out Art a, out float power)
+        {
+            a = null; power = 0f;
+            if (attacker == null) return false;
+            int hash = 0;
+            ZDO z = OwnZdo(attacker);
+            if (z != null)
+            {
+                hash = z.GetInt(ZdoArt, 0);
+                if (hash != 0)
+                {
+                    long until = z.GetLong(ZdoUntil, 0L);
+                    if (until == 0L || NowTicks() >= until) hash = 0;
+                    else power = z.GetFloat(ZdoPower, 0f);
+                }
+            }
+            if (hash == 0 && !ProxyWindowArt(attacker, out hash, out power)) return false;
+            return _artByHash.TryGetValue(hash, out a) && power > 0f;
         }
 
         // ------------------------------------------------------------------

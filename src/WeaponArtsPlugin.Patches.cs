@@ -57,16 +57,8 @@ namespace WeaponArts
                     if (__instance.IsPlayer()) return;                 // PvP-safe: creatures only
                     Character attacker = hit.GetAttacker();
                     if (attacker == null || !attacker.IsPlayer()) return;
-                    ZDO z = OwnZdo(attacker);
-                    if (z == null) return;
-                    int artHash = z.GetInt(ZdoArt, 0);
-                    if (artHash == 0) return;
-                    long until = z.GetLong(ZdoUntil, 0L);
-                    if (until == 0L || NowTicks() >= until) return;
-                    Art a;
-                    if (!p._artByHash.TryGetValue(artHash, out a)) return;
-                    float power = z.GetFloat(ZdoPower, 0f);
-                    if (power <= 0f) return;
+                    Art a; float power;
+                    if (!p.AttackerArt(attacker, out a, out power)) return;
                     bool boss = __instance.IsBoss();
                     float bf = boss ? p._cfgBossFactor.Value : 1f;
 
@@ -99,10 +91,8 @@ namespace WeaponArts
                     if (dealt <= 0f) return;
                     Character attacker = hit.GetAttacker();
                     if (attacker == null) return;
-                    ZDO z = OwnZdo(attacker);
-                    if (z == null) return;
-                    float frac = z.GetFloat(ZdoPower, 0f);
-                    if (frac <= 0f) return;
+                    Art a; float frac;
+                    if (!p.AttackerArt(attacker, out a, out frac) || a.Kind != ArtKind.Vampirism || frac <= 0f) return;
                     float bf = __instance.IsBoss() ? p._cfgBossFactor.Value : 1f;
                     float heal = dealt * frac * bf;
                     if (heal <= 0f) return;
@@ -113,6 +103,33 @@ namespace WeaponArts
                     else nv.InvokeRPC(nv.GetZDO().GetOwner(), "Heal", heal, false);
                 }
                 catch (Exception e) { p.Fail("RPC_Damage.vamp", e); }
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // proxy: trigger by chat word, and reduce a proxy-tank's incoming hits
+        // ------------------------------------------------------------------
+        [HarmonyPatch(typeof(Chat), "OnNewChatMessage")]
+        private static class Chat_OnNewChatMessage_Patch
+        {
+            private static void Postfix(long senderID, Talker.Type type, string text)
+            {
+                WeaponArtsPlugin p = Instance;
+                if (p == null || !p.Active) return;
+                try { p.OnChat(senderID, type, text); } catch (Exception e) { p.Fail("chat", e); }
+            }
+        }
+
+        // Character.Damage on our client, before a hit is sent to its victim: a hit from a
+        // monster held for a modless tank is reduced here (their client cannot do it).
+        [HarmonyPatch(typeof(Character), "Damage")]
+        private static class Character_Damage_Patch
+        {
+            private static void Prefix(Character __instance, HitData hit)
+            {
+                WeaponArtsPlugin p = Instance;
+                if (p == null || hit == null || p._proxies.Count == 0) return;
+                try { p.ReduceProxyHit(__instance, hit); } catch (Exception e) { p.Fail("Damage", e); }
             }
         }
     }

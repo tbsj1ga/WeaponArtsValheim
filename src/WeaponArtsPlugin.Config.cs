@@ -23,7 +23,7 @@ namespace WeaponArts
         {
             _cfgEnabled = Config.Bind("01 General", "Enabled", true, "Master switch.");
             _cfgDebug = Config.Bind("01 General", "Debug", false, "Log every activation and applied effect.");
-            _cfgKey = Config.Bind("01 General", "AbilityKey", new KeyboardShortcut(KeyCode.G),
+            _cfgKey = Config.Bind("01 General", "AbilityKey", new KeyboardShortcut(KeyCode.C),
                 "Key that triggers the art of the currently equipped weapon.");
             _cfgShowHud = Config.Bind("01 General", "ShowHud", true, "Show the current art and its state at the bottom of the screen.");
 

@@ -27,7 +27,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.3.0";
+        public const string Version = "0.4.0";
 
         public static WeaponArtsPlugin Instance;
 
@@ -56,6 +56,7 @@ namespace WeaponArts
                 Instance = this;
                 BindConfig();
                 BindTauntConfig();
+                BindProxyConfig();
                 BindReflection();
                 BuildArts();
                 RegisterCommands();
@@ -86,6 +87,7 @@ namespace WeaponArts
                 if (p == null || p.IsDead()) return;
                 if (_cfgKey.Value.IsDown() && !BlockedByUI()) TryActivate(p);
                 TauntTick(p, Time.time);
+                UpdateProxies(p, Time.time);
             }
             catch (Exception e) { Fail("Update", e); }
         }

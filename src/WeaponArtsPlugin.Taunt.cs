@@ -132,17 +132,19 @@ namespace WeaponArts
             _tauntCdUntil = now + _cfgTauntCooldown.Value;
             _gcdUntil = now + _cfgGlobalCooldown.Value;
             _tauntNextReapply = now + ReapplyInterval;
-            ApplyTaunt(p);
+            _tauntCount = ApplyTauntHold(p, _tauntUntil, _cfgTauntRadius.Value);
             Message(p, "Таунт! (" + _tauntCount + ")");
             Debug("Taunt: pulled " + _tauntCount + ", reduction " + FormatTime(_tauntReduction) + ", shield " + FormatTime(shieldNorm));
         }
 
         private const float ReapplyInterval = 0.25f;
 
-        private void ApplyTaunt(Player tank)
+        // Hold the monsters in radius onto a tank (us, or a modless player we taunt for).
+        internal int ApplyTauntHold(Character tank, float until, float radius)
         {
+            if (tank == null) return 0;
             Vector3 me = tank.transform.position;
-            float r2 = _cfgTauntRadius.Value * _cfgTauntRadius.Value;
+            float r2 = radius * radius;
             ZDOID tankId = tank.GetZDOID();
             int n = 0;
             List<Character> all = Character.GetAllCharacters();
@@ -163,28 +165,29 @@ namespace WeaponArts
                 if (_cfgTauntAggravate.Value && ai.IsAggravatable() && !ai.IsAggravated())
                     ai.SetAggravated(true, BaseAI.AggravatedReason.Damage);
 
-                Hold h; h.Until = _tauntUntil; h.Target = tankId;
+                Hold h; h.Until = until; h.Target = tankId;
                 _tainted[c.GetZDOID()] = h;
                 n++;
             }
-            _tauntCount = n;
+            return n;
         }
 
         // The tank a held monster belongs to, read by the UpdateTarget patch (runs on the owner
-        // of the monster, which is us because we claimed it).
+        // of the monster, which is us because we claimed it). May be us or a modless player.
         internal Character HeldTarget(ZDOID monster)
         {
             Hold h;
             if (!Active || !_tainted.TryGetValue(monster, out h) || Time.time >= h.Until) return null;
             Player local = Player.m_localPlayer;
-            return (local != null && h.Target == local.GetZDOID()) ? local : null;
+            if (local != null && h.Target == local.GetZDOID()) return local;
+            return ProxyTankChar(h.Target);
         }
 
         private void TauntTick(Player p, float now)
         {
             if (TauntActive)
             {
-                if (now >= _tauntNextReapply) { _tauntNextReapply = now + ReapplyInterval; ApplyTaunt(p); }
+                if (now >= _tauntNextReapply) { _tauntNextReapply = now + ReapplyInterval; _tauntCount = ApplyTauntHold(p, _tauntUntil, _cfgTauntRadius.Value); }
             }
             if (_tainted.Count > 0)
             {
