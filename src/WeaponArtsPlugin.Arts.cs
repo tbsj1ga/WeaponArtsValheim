@@ -11,7 +11,7 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         // art model + registry
         // ------------------------------------------------------------------
-        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst }
+        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst, Pierce }
 
         internal class Art
         {
@@ -93,15 +93,15 @@ namespace WeaponArts
             // Phase 1: on-target combat arts (applied on the owner of the struck creature).
             Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.35f, 4f, 36f, 30f, false);
             Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.15f, 4f, 40f, 25f, false);
-            Add("Rend", "Рассечение", "боевой топор: цель получает больше урона", ArtKind.DamageMult, Ax, 2, 1.40f, 4f, 36f, 30f, false);
+            Add("Rend", "Рассечение", "боевой топор: игнор брони цели (доля)", ArtKind.Pierce, Ax, 2, 0.4f, 4f, 36f, 30f, false);
             Add("Bleed", "Кровотечение", "топор 1H: DoT на ударах", ArtKind.Dot, Ax, 1, 12f, 4f, 32f, 25f, false);
-            Add("Pierce", "Пробитие", "копьё: +урон сквозь броню", ArtKind.DamageMult, Sp, 1, 1.35f, 4f, 32f, 25f, false);
-            Add("Impale", "Пронзание", "пика: мощный выпад", ArtKind.DamageMult, Sp, 2, 1.60f, 3f, 40f, 30f, false);
+            Add("Pierce", "Пробитие", "копьё: игнор брони (доля)", ArtKind.Pierce, Sp, 1, 0.5f, 4f, 32f, 25f, false);
+            Add("Impale", "Пронзание", "пика: сильный игнор брони (доля)", ArtKind.Pierce, Sp, 2, 0.8f, 3f, 40f, 30f, false);
             Add("Crushing", "Дробящий", "атгейр: удары вгоняют в стаггер", ArtKind.Stagger, Po, 0, 2.5f, 4f, 40f, 30f, false);
             Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 4f, 32f, 25f, false);
             Add("Fury", "Ярость", "кулаки: критический урон", ArtKind.DamageMult, Un, 0, 1.5f, 4f, 36f, 25f, false).NoStackSneak = true;
             Add("Focus", "Фокус", "лук: критические выстрелы", ArtKind.DamageMult, Bo, 0, 1.8f, 4f, 40f, 20f, false).NoStackSneak = true;
-            Add("PiercingBolts", "Бронебой", "арбалет: болты сквозь броню", ArtKind.DamageMult, Cr, 0, 1.5f, 4f, 40f, 20f, false);
+            Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят броню (доля)", ArtKind.Pierce, Cr, 0, 0.6f, 4f, 40f, 20f, false);
 
             // Phase 2: heals, AoE burst, eitr surge.
             Skills.SkillType Cl = Skills.SkillType.Clubs, El = Skills.SkillType.ElementalMagic, Bl = Skills.SkillType.BloodMagic;

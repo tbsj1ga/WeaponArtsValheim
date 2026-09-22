@@ -7,6 +7,12 @@ namespace WeaponArts
 {
     public partial class WeaponArtsPlugin
     {
+        // Armor penetration state for the hit currently being applied in RPC_Damage: set in its
+        // prefix for a Pierce art, read by the GetBodyArmor postfix (RPC_Damage reads body armor
+        // once, between our prefix and postfix), cleared in the postfix and a finalizer.
+        internal static bool s_penActive;
+        internal static float s_penFraction;
+
         // ------------------------------------------------------------------
         // taunt: hold the pulled monsters on the tank (owner side)
         // ------------------------------------------------------------------
@@ -44,6 +50,7 @@ namespace WeaponArts
             private static void Prefix(Character __instance, HitData hit, out float __state)
             {
                 __state = -1f;
+                s_penActive = false;                                   // clean per hit
                 WeaponArtsPlugin p = Instance;
                 if (p == null || !p.Active || __instance == null || hit == null) return;
                 try
@@ -75,6 +82,10 @@ namespace WeaponArts
                         case ArtKind.Stagger:
                             if (!boss) hit.m_staggerMultiplier *= power; // bosses are stagger-immune
                             break;
+                        case ArtKind.Pierce:
+                            s_penActive = true;                         // GetBodyArmor postfix reads this
+                            s_penFraction = Mathf.Clamp(power * bf, 0f, 0.95f);
+                            break;
                         case ArtKind.Vampirism:
                             __state = __instance.GetHealth();           // measured in the postfix
                             break;
@@ -83,8 +94,11 @@ namespace WeaponArts
                 catch (Exception e) { p.Fail("RPC_Damage", e); }
             }
 
+            private static void Finalizer() { s_penActive = false; }
+
             private static void Postfix(Character __instance, HitData hit, float __state)
             {
+                s_penActive = false;                                   // armor already applied by now
                 WeaponArtsPlugin p = Instance;
                 if (p == null || __state < 0f || __instance == null || hit == null) return;
                 try
@@ -105,6 +119,18 @@ namespace WeaponArts
                     else nv.InvokeRPC(nv.GetZDO().GetOwner(), "Heal", heal, false);
                 }
                 catch (Exception e) { p.Fail("RPC_Damage.vamp", e); }
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // armor penetration: reduce the victim's body armor for a Pierce hit
+        // ------------------------------------------------------------------
+        [HarmonyPatch(typeof(Character), "GetBodyArmor")]
+        private static class Character_GetBodyArmor_Patch
+        {
+            private static void Postfix(ref float __result)
+            {
+                if (s_penActive && s_penFraction > 0f) __result *= (1f - s_penFraction);
             }
         }
 
