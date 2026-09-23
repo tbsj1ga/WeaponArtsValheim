@@ -27,7 +27,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.10.0";
+        public const string Version = "0.11.0";
 
         public static WeaponArtsPlugin Instance;
 
@@ -60,6 +60,7 @@ namespace WeaponArts
                 BindSyncConfig();
                 BindBleedConfig();
                 BindEffectsConfig();
+                BindHudConfig();
                 BindReflection();
                 BuildArts();
                 RegisterCommands();
@@ -89,7 +90,7 @@ namespace WeaponArts
                 if (_syncDirty) FlushSync();
                 Player p = Player.m_localPlayer;
                 if (p == null || p.IsDead()) return;
-                if (_cfgKey.Value.IsDown() && !BlockedByUI()) TryActivate(p);
+                if (ShortcutPressed(_cfgKey.Value) && !BlockedByUI()) TryActivate(p);
                 TauntTick(p, Time.time);
                 UpdateProxies(p, Time.time);
                 BleedTick(Time.time);
@@ -126,6 +127,18 @@ namespace WeaponArts
             if (StoreGui.IsVisible()) return true;
             if (Minimap.instance != null && Minimap.IsOpen()) return true;
             return false;
+        }
+
+        // The key with its modifiers held, whatever else is held. KeyboardShortcut.IsDown() also
+        // demands that NO other key is down, so it never fired while moving or blocking.
+        private static bool ShortcutPressed(KeyboardShortcut shortcut)
+        {
+            if (shortcut.MainKey == KeyCode.None) return false;
+            IInputSystem input = UnityInput.Current;
+            if (input == null || !input.GetKeyDown(shortcut.MainKey)) return false;
+            foreach (KeyCode modifier in shortcut.Modifiers)
+                if (!input.GetKey(modifier)) return false;
+            return true;
         }
 
         internal static string FormatTime(float seconds)

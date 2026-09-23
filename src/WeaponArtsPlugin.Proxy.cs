@@ -309,6 +309,7 @@ namespace WeaponArts
                 px.ArtHash = a.Hash; px.ArtPower = power; px.ArtUntil = now + Sv(a.Win) * (1f + durBonus);
                 Announce(a.Name + " за " + px.Name + ": " + Sv(a.Win).ToString("0") + "с");
             }
+            try { PlayArtEffects(p, a); } catch (Exception e) { Fail("proxy art effects", e); }
             px.CooldownUntil = now + a.Cd.Value * _cfgProxyCooldownFactor.Value;
             px.ReadyAnnounced = false;
         }

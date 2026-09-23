@@ -236,12 +236,14 @@ namespace WeaponArts
                     z.Set(ZdoUntil, NowTicks() + (long)(window * TimeSpan.TicksPerSecond));
                     z.Set(ZdoPower, power);
                 }
-                info = a.Name + "!";
+                _activeUntil[a.Id] = now + window;                 // for the HUD countdown
+                info = a.Name + "! " + FormatTime(window) + "с";
             }
 
             _cooldownUntil[a.Id] = now + a.Cd.Value;
             _gcdUntil = now + _cfgGlobalCooldown.Value;
             _lastArtId = a.Id; _lastActivated = now;
+            try { PlayArtEffects(p, a); } catch (Exception e) { Fail("art effects", e); }
             Message(p, info);
             Debug("Activated " + a.Id + " (tier " + FormatTime(tierNorm) + ", skill " + FormatTime(skill) + ")");
         }
@@ -312,6 +314,15 @@ namespace WeaponArts
         {
             float u;
             return _cooldownUntil.TryGetValue(a.Id, out u) ? (u - Time.time) : 0f;
+        }
+
+        // Remaining seconds of the art's active window (window arts only); <=0 when not active.
+        private readonly Dictionary<string, float> _activeUntil = new Dictionary<string, float>();
+
+        internal float ActiveLeft(Art a)
+        {
+            float u;
+            return _activeUntil.TryGetValue(a.Id, out u) ? (u - Time.time) : 0f;
         }
     }
 }

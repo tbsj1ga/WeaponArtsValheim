@@ -13,6 +13,14 @@ namespace WeaponArts
         internal static bool s_penActive;
         internal static float s_penFraction;
 
+        // Same condition the game uses for the sneak bonus: an unalerted AI and a weapon bonus.
+        private static bool WillBackstab(Character victim, HitData hit)
+        {
+            if (victim == null || hit.m_backstabBonus <= 1f) return false;
+            BaseAI ai = victim.GetBaseAI();
+            return ai != null && !ai.IsAlerted();
+        }
+
         // ------------------------------------------------------------------
         // taunt: hold the pulled monsters on the tank (owner side)
         // ------------------------------------------------------------------
@@ -73,8 +81,10 @@ namespace WeaponArts
                     switch (a.Kind)
                     {
                         case ArtKind.DamageMult:
-                            // crit arts do not stack on top of a sneak/backstab hit
-                            if (a.NoStackSneak && hit.m_backstabBonus > 1f) break;
+                            // crit arts do not stack on top of a real sneak hit. m_backstabBonus is
+                            // the weapon's multiplier and is set on EVERY hit; the game applies it
+                            // only when the victim's AI is not alerted (Character.RPC_Damage).
+                            if (a.NoStackSneak && WillBackstab(__instance, hit)) break;
                             hit.ApplyModifier(1f + (power - 1f) * bf);
                             break;
                         case ArtKind.Dot:
