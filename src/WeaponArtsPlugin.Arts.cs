@@ -11,7 +11,7 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         // art model + registry
         // ------------------------------------------------------------------
-        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst, Pierce, Bleed }
+        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst, Pierce, Bleed, Expose }
 
         internal class Art
         {
@@ -28,6 +28,10 @@ namespace WeaponArts
             public ConfigEntry<float> Radius, HLo0, HLo1, HHi0, HHi1;
             public bool IncludeSelf;
             public bool NoStackSneak;   // crit arts: do not add on top of a backstab
+            public ConfigEntry<float> Bonus;    // Pierce: flat damage bonus on top of the resist ignore
+            public ConfigEntry<float> Linger;   // Expose: seconds the mark stays on the target
+            public ConfigEntry<int> Shots;      // ranged: the art lasts this many shots (Window caps it)
+            public bool Heal1H;                 // Mend: shaman-style cast instead of the Rally visual
         }
 
         private readonly List<Art> _arts = new List<Art>();
@@ -40,7 +44,11 @@ namespace WeaponArts
             a.Id = id; a.Hash = id.GetStableHashCode(); a.Name = name; a.Desc = desc;
             a.Kind = kind; a.Skill = skill; a.Hand = hand; a.UsesEitr = eitr;
             string s = "03 Arts - " + id;
-            a.Mag = Config.Bind(s, "Magnitude", mag, "Base strength (see the art). Damage arts are a multiplier; DoT is poison per hit; stagger is a multiplier; lifesteal is a fraction.");
+            a.Mag = Config.Bind(s, "Magnitude", mag, "Base strength at skill 0 with the weakest weapon (grows with TierPowerBonus/SkillPowerBonus). Damage arts: multiplier; DoT: poison/bleed per hit; lifesteal: fraction; pierce: fraction of resistance ignored; expose: extra damage taken by the target; stagger: unused (every hit staggers).");
+            if (kind == ArtKind.Pierce)
+                a.Bonus = Config.Bind(s, "DamageBonus", 0.15f, new ConfigDescription("Extra damage on top of the resistance ignore (0.15 = +15%), so the art matters on unresisting targets too.", new AcceptableValueRange<float>(0f, 2f)));
+            if (kind == ArtKind.Expose)
+                a.Linger = Config.Bind(s, "ExposeSeconds", 8f, new ConfigDescription("Seconds a struck target stays exposed (takes more damage from everyone).", new AcceptableValueRange<float>(1f, 30f)));
             a.Win = Config.Bind(s, "Window", win, new ConfigDescription("Seconds the art lasts (before skill/tier scaling; +50% cap).", new AcceptableValueRange<float>(0.5f, 30f)));
             a.Cd = Config.Bind(s, "Cooldown", cd, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(1f, 600f)));
             a.Cost = Config.Bind(s, "Cost", cost, new ConfigDescription("Stamina (or eitr) spent.", new AcceptableValueRange<float>(0f, 200f)));
@@ -93,20 +101,25 @@ namespace WeaponArts
             // Phase 1: on-target combat arts (applied on the owner of the struck creature).
             Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.35f, 4f, 36f, 30f, false);
             Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.15f, 4f, 40f, 25f, false);
-            Add("Rend", "Рассечение", "боевой топор: игнор брони цели (доля)", ArtKind.Pierce, Ax, 2, 0.4f, 4f, 36f, 30f, false);
+            // Creatures have no body armor in Valheim (Character.GetBodyArmor is 0), so the pierce
+            // arts ignore RESISTANCES instead, plus a flat bonus; the battleaxe exposes the target.
+            Add("Rend", "Рассечение", "боевой топор: цель уязвима (+урон от всех)", ArtKind.Expose, Ax, 2, 0.2f, 4f, 36f, 30f, false);
             Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 10f, 4f, 32f, 25f, false);
-            Add("Pierce", "Пробитие", "копьё: игнор брони (доля)", ArtKind.Pierce, Sp, 1, 0.5f, 4f, 32f, 25f, false);
-            Add("Impale", "Пронзание", "пика: сильный игнор брони (доля)", ArtKind.Pierce, Sp, 2, 0.8f, 3f, 40f, 30f, false);
-            Add("Crushing", "Дробящий", "атгейр: удары вгоняют в стаггер", ArtKind.Stagger, Po, 0, 2.5f, 4f, 40f, 30f, false);
+            Add("Pierce", "Пробитие", "копьё: игнор сопротивлений + урон", ArtKind.Pierce, Sp, 1, 0.5f, 4f, 32f, 25f, false);
+            Add("Impale", "Пронзание", "пика: сильный игнор сопротивлений + урон", ArtKind.Pierce, Sp, 2, 0.8f, 3f, 40f, 30f, false);
+            Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 3f, 40f, 30f, false);
             Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 4f, 32f, 25f, false);
             Add("Fury", "Ярость", "кулаки: критический урон", ArtKind.DamageMult, Un, 0, 1.5f, 4f, 36f, 25f, false).NoStackSneak = true;
-            Add("Focus", "Фокус", "лук: критические выстрелы", ArtKind.DamageMult, Bo, 0, 1.8f, 4f, 40f, 20f, false).NoStackSneak = true;
-            Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят броню (доля)", ArtKind.Pierce, Cr, 0, 0.6f, 4f, 40f, 20f, false);
+            Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 1.6f, 15f, 40f, 20f, false);
+            focus.NoStackSneak = true;
+            Art bolts = Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят сопротивления + урон", ArtKind.Pierce, Cr, 0, 0.6f, 15f, 40f, 20f, false);
+            focus.Shots = Config.Bind("03 Arts - Focus", "Shots", 3, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
+            bolts.Shots = Config.Bind("03 Arts - PiercingBolts", "Shots", 2, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
 
             // Phase 2: heals, AoE burst, eitr surge.
             Skills.SkillType Cl = Skills.SkillType.Clubs, El = Skills.SkillType.ElementalMagic, Bl = Skills.SkillType.BloodMagic;
             AddHeal("Rally", "Клич", "кувалда 2H: хил себе и союзникам", Cl, 2, 60f, 40f, 15f, 60f, 25f, 100f, 10f, true);
-            AddHeal("Mend", "Исцеление", "булава 1H: хил только союзникам", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 8f, false);
+            AddHeal("Mend", "Исцеление", "булава 1H: хил только союзникам", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 8f, false).Heal1H = true;
             Add("EitrSurgeElem", "Вспышка эйтра", "посох стихий: +магический урон", ArtKind.DamageMult, El, 0, 1.4f, 4f, 50f, 30f, true);
             Add("EitrSurgeBlood", "Вспышка эйтра", "посох крови: +магический урон", ArtKind.DamageMult, Bl, 0, 1.4f, 4f, 50f, 30f, true);
             // Whirlwind (кистень): flail skillType не подтверждён (в ваниле может совпасть с
@@ -207,7 +220,7 @@ namespace WeaponArts
             // scaling: tier from weapon damage, skill from the weapon's skill
             float tierNorm = Mathf.Clamp01(WeaponTotalDamage(weapon) / Mathf.Max(1f, Sv(_cfgRefWeaponDamage)));
             float skill = p.GetSkillFactor(a.Skill);                 // 0..1
-            float s = (0.5f + 0.5f * tierNorm) * (1f + skill * Sv(_cfgSkillPowerScale));
+            float s = PowerScale(tierNorm, skill);
             float p01 = 0.5f * tierNorm + 0.5f * skill;
 
             if (cost > 0f) { if (a.UsesEitr) p.UseEitr(cost); else p.UseStamina(cost); }
@@ -237,7 +250,13 @@ namespace WeaponArts
                     z.Set(ZdoPower, power);
                 }
                 _activeUntil[a.Id] = now + window;                 // for the HUD countdown
-                info = a.Name + "! " + FormatTime(window) + "с";
+                if (a.Shots != null)
+                {
+                    _shotsLeft[a.Id] = Mathf.Max(1, a.Shots.Value);
+                    info = a.Name + "! " + _shotsLeft[a.Id] + " выстр. (до " + FormatTime(window) + "с)";
+                }
+                else info = a.Name + "! " + FormatTime(window) + "с";
+                Debug("Activated " + a.Id + ": power " + power.ToString("0.00") + ", window " + FormatTime(window) + "s");
             }
 
             _cooldownUntil[a.Id] = now + a.Cd.Value;
@@ -268,6 +287,7 @@ namespace WeaponArts
                 if (q == p && !a.IncludeSelf) continue;
                 if ((q.transform.position - me).sqrMagnitude > r2) continue;
                 HealChar(q, amount);
+                try { PlayHealHit(a, q); } catch (Exception e) { Fail("heal hit fx", e); }
                 n++;
             }
             Debug(a.Id + ": heal " + FormatTime(amount) + " to " + n + " (roll " + FormatTime(lo) + "-" + FormatTime(hi) + ")");
@@ -280,7 +300,7 @@ namespace WeaponArts
             ZNetView nv = c.GetComponent<ZNetView>();
             if (nv == null || !nv.IsValid()) return;
             if (nv.IsOwner()) c.Heal(amt, true);
-            else nv.InvokeRPC(nv.GetZDO().GetOwner(), "Heal", amt, false);
+            else nv.InvokeRPC(nv.GetZDO().GetOwner(), "RPC_Heal", amt, true);   // registered in Character.Awake
         }
 
         private int DoBurst(Player p, Art a, ItemDrop.ItemData weapon, float s)
@@ -323,6 +343,61 @@ namespace WeaponArts
         {
             float u;
             return _activeUntil.TryGetValue(a.Id, out u) ? (u - Time.time) : 0f;
+        }
+
+        // ------------------------------------------------------------------
+        // exposed mark (battleaxe): on the struck creature's ZDO, read by whoever owns it
+        // ------------------------------------------------------------------
+        internal static readonly int ZdoExposedUntil = "j1ga.weaponarts.exposed.until".GetStableHashCode();
+        internal static readonly int ZdoExposed = "j1ga.weaponarts.exposed".GetStableHashCode();
+
+        // Called from RPC_Damage, i.e. on the owner of the creature, who may write its ZDO.
+        internal void MarkExposed(Character c, float fraction, float seconds)
+        {
+            ZDO z = OwnZdo(c);
+            if (z == null || fraction <= 0f) return;
+            long now = NowTicks();
+            float cur = z.GetLong(ZdoExposedUntil, 0L) > now ? z.GetFloat(ZdoExposed, 0f) : 0f;
+            z.Set(ZdoExposed, Mathf.Max(cur, fraction));
+            z.Set(ZdoExposedUntil, now + (long)(seconds * TimeSpan.TicksPerSecond));
+        }
+
+        internal float ExposedFraction(Character c)
+        {
+            ZDO z = OwnZdo(c);
+            if (z == null || z.GetLong(ZdoExposedUntil, 0L) <= NowTicks()) return 0f;
+            return Mathf.Clamp(z.GetFloat(ZdoExposed, 0f), 0f, 1f);
+        }
+
+        // ------------------------------------------------------------------
+        // shot-counted arts (bow/crossbow): the art lasts N shots, Window caps it
+        // ------------------------------------------------------------------
+        private readonly Dictionary<string, int> _shotsLeft = new Dictionary<string, int>();
+        private const float ShotGrace = 2.5f;   // arrows already in flight still count
+
+        internal int ShotsLeft(Art a)
+        {
+            int n;
+            return a != null && a.Shots != null && ActiveLeft(a) > 0f && _shotsLeft.TryGetValue(a.Id, out n) ? n : 0;
+        }
+
+        // A projectile fired by the local player: spend a shot; after the last one the window
+        // shrinks to the grace period so only the arrows already fired get the bonus.
+        internal void OnLocalShot(ItemDrop.ItemData weapon)
+        {
+            Art a = ArtFor(weapon);
+            if (a == null || a.Shots == null || ActiveLeft(a) <= 0f) return;
+            int n;
+            if (!_shotsLeft.TryGetValue(a.Id, out n) || n <= 0) return;
+            n--;
+            _shotsLeft[a.Id] = n;
+            Debug(a.Id + ": shot, " + n + " left");
+            if (n > 0) return;
+            float end = Mathf.Min(ActiveLeft(a), ShotGrace);
+            _activeUntil[a.Id] = Time.time + end;
+            ZDO z = OwnZdo(Player.m_localPlayer);
+            if (z != null && z.GetInt(ZdoArt, 0) == a.Hash)
+                z.Set(ZdoUntil, NowTicks() + (long)(end * TimeSpan.TicksPerSecond));
         }
     }
 }

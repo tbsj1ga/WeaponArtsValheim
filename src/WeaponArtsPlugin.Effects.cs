@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using BepInEx;
 using BepInEx.Configuration;
+using HarmonyLib;
 using UnityEngine;
 
 namespace WeaponArts
@@ -32,7 +33,70 @@ namespace WeaponArts
                 new ConfigDescription("Sound when a weapon art is activated: Perfect (perfect-block sparks), None.",
                     new AcceptableValueList<string>("Perfect", "None")));
             _cfgArtVisual = Config.Bind("07 Art Effects", "Visual", "GuardianPower", "Visual when a weapon art is activated, attached to you. " + VisualHelp);
-            _cfgHealVisual = Config.Bind("07 Art Effects", "HealVisual", "fx_guardstone_activate", "Visual for the heal arts (Rally, Mend) instead of the one above. " + VisualHelp);
+            _cfgHealVisual = Config.Bind("07 Art Effects", "HealVisual", "fx_guardstone_activate", "Visual for Rally (sledge heal) instead of the one above. " + VisualHelp);
+            _cfgMendVisual = Config.Bind("07 Art Effects", "MendVisual", "ShamanHeal", "Visual for Mend (mace heal): ShamanHeal (the greydwarf shaman's heal cast, also shown on each healed ally), or anything HealVisual takes.");
+            _cfgMendAnimation = Config.Bind("07 Art Effects", "MendAnimation", "StaffShield", "Player animation for Mend: the attack animation of this item prefab (StaffShield = the staff-of-protection cast), a raw animator trigger name, or None.");
+        }
+
+        private ConfigEntry<string> _cfgMendVisual;
+        private ConfigEntry<string> _cfgMendAnimation;
+        private EffectList _shamanCast, _shamanHit;
+        private bool _shamanResolved;
+
+        private static readonly System.Reflection.FieldInfo s_zanim = AccessTools.Field(typeof(Character), "m_zanim");
+
+        // The greydwarf shaman's heal attack effects (start/trigger at the caster, hit on the
+        // healed). Resolved once from its default items; vanilla prefabs, visible to everyone.
+        private void ResolveShaman()
+        {
+            if (_shamanResolved || ZNetScene.instance == null) return;
+            _shamanResolved = true;
+            GameObject shaman = ZNetScene.instance.GetPrefab("Greydwarf_Shaman");
+            Humanoid h = shaman != null ? shaman.GetComponent<Humanoid>() : null;
+            if (h == null || h.m_defaultItems == null) { Logger.LogWarning("Greydwarf_Shaman not found; Mend uses HealVisual."); return; }
+            foreach (GameObject go in h.m_defaultItems)
+            {
+                ItemDrop d = go != null ? go.GetComponent<ItemDrop>() : null;
+                if (d == null || go.name.IndexOf("heal", StringComparison.OrdinalIgnoreCase) < 0) continue;
+                Attack at = d.m_itemData.m_shared.m_attack;
+                if (at == null) continue;
+                _shamanCast = new EffectList();
+                List<EffectList.EffectData> all = new List<EffectList.EffectData>();
+                if (at.m_startEffect != null && at.m_startEffect.m_effectPrefabs != null) all.AddRange(at.m_startEffect.m_effectPrefabs);
+                if (at.m_triggerEffect != null && at.m_triggerEffect.m_effectPrefabs != null) all.AddRange(at.m_triggerEffect.m_effectPrefabs);
+                _shamanCast.m_effectPrefabs = all.ToArray();
+                _shamanHit = at.m_hitEffect;
+                Debug("Mend visual from " + go.name + ": " + all.Count + " cast effects, hit " + (_shamanHit != null && _shamanHit.HasEffects()));
+                return;
+            }
+            Logger.LogWarning("Greydwarf_Shaman has no heal item; Mend uses HealVisual.");
+        }
+
+        private bool UseShaman(Art a)
+        {
+            if (a == null || !a.Heal1H || !string.Equals((_cfgMendVisual.Value ?? "").Trim(), "ShamanHeal", StringComparison.OrdinalIgnoreCase)) return false;
+            ResolveShaman();
+            return _shamanCast != null && _shamanCast.HasEffects();
+        }
+
+        // Mend: the shaman's heal effect on a healed ally.
+        private void PlayHealHit(Art a, Character target)
+        {
+            if (target == null || !UseShaman(a) || _shamanHit == null) return;
+            Play(_shamanHit, target.GetCenterPoint(), target.transform.rotation, target.transform, target.GetZDOID());
+        }
+
+        // Mend: a cast animation on the local player (synced by ZSyncAnimation to everyone).
+        private void PlayMendAnimation(Humanoid actor, Art a)
+        {
+            if (a == null || !a.Heal1H || actor != Player.m_localPlayer) return;
+            string anim = (_cfgMendAnimation.Value ?? "").Trim();
+            if (anim.Length == 0 || anim.Equals("None", StringComparison.OrdinalIgnoreCase)) return;
+            GameObject item = ObjectDB.instance != null ? ObjectDB.instance.GetItemPrefab(anim) : null;
+            ItemDrop d = item != null ? item.GetComponent<ItemDrop>() : null;
+            if (d != null && d.m_itemData.m_shared.m_attack != null) anim = d.m_itemData.m_shared.m_attack.m_attackAnimation;
+            ZSyncAnimation z = s_zanim != null ? s_zanim.GetValue(actor) as ZSyncAnimation : null;
+            if (z != null && !string.IsNullOrEmpty(anim)) z.SetTrigger(anim);
         }
 
         // tank is us or a player we taunt for; blockEffect is the block effect of the shield in
@@ -46,8 +110,16 @@ namespace WeaponArts
         private void PlayArtEffects(Humanoid actor, Art a)
         {
             if (a == null) return;
+            if (UseShaman(a))
+            {
+                PlayEffects(actor, _cfgArtSound.Value, "None", null);
+                Play(_shamanCast, actor.GetCenterPoint(), actor.transform.rotation, actor.transform, actor.GetZDOID());
+                PlayMendAnimation(actor, a);
+                return;
+            }
             string visual = a.Kind == ArtKind.AoEHeal ? _cfgHealVisual.Value : _cfgArtVisual.Value;
             PlayEffects(actor, _cfgArtSound.Value, visual, null);
+            PlayMendAnimation(actor, a);
         }
 
         private void PlayEffects(Humanoid actor, string sound, string visual, EffectList blockEffect)

@@ -61,7 +61,9 @@ namespace WeaponArts
                     name = a.Name; desc = a.Desc;
                     float act = ActiveLeft(a);
                     float cd = CooldownLeft(a);
-                    if (act > 0f) { state = "активна " + FormatTime(act) + "с"; c = amber; }
+                    int shots = ShotsLeft(a);
+                    if (act > 0f && shots > 0) { state = "активна: " + shots + " выстр. (" + Mathf.CeilToInt(act) + "с)"; c = amber; }
+                    else if (act > 0f) { state = "активна " + FormatTime(act) + "с"; c = amber; }
                     else if (cd > 0f) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = grey; }
                     else { state = "готова"; c = green; }
                 }
