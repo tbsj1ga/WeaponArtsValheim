@@ -8,6 +8,9 @@ namespace WeaponArts
 {
     public partial class WeaponArtsPlugin
     {
+        // No art or taunt window is ever shorter than this (config range and runtime clamp).
+        internal const float MinWindow = 6f;
+
         private ConfigEntry<bool> _cfgEnabled;
         private ConfigEntry<bool> _cfgDebug;
         private ConfigEntry<KeyboardShortcut> _cfgKey;

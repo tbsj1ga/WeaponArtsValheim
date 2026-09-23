@@ -51,7 +51,7 @@ namespace WeaponArts
                 a.Regen = Config.Bind(s, "RegenPerSecond", 4.5f, new ConfigDescription("HP restored per second while berserk (grows with tier/skill like Magnitude).", new AcceptableValueRange<float>(0f, 50f)));
             if (kind == ArtKind.Expose)
                 a.Linger = Config.Bind(s, "ExposeSeconds", 8f, new ConfigDescription("Seconds a struck target stays exposed (takes more damage from everyone).", new AcceptableValueRange<float>(1f, 30f)));
-            a.Win = Config.Bind(s, "Window", win, new ConfigDescription("Seconds the art lasts (before skill/tier scaling; +50% cap).", new AcceptableValueRange<float>(0.5f, 30f)));
+            a.Win = Config.Bind(s, "Window", win, new ConfigDescription("Seconds the art lasts (before skill/tier scaling; +50% cap).", new AcceptableValueRange<float>(MinWindow, 30f)));
             a.Cd = Config.Bind(s, "Cooldown", cd, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(1f, 600f)));
             a.Cost = Config.Bind(s, "Cost", cost, new ConfigDescription("Stamina (or eitr) spent.", new AcceptableValueRange<float>(0f, 200f)));
             _arts.Add(a); _artByHash[a.Hash] = a;
@@ -104,13 +104,13 @@ namespace WeaponArts
             Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.525f, 6f, 43f, 30f, false);
             Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.225f, 6f, 48f, 25f, false);
             Add("Berserk", "Берсерк", "боевой топор: меньше урона по себе + реген HP", ArtKind.Berserk, Ax, 2, 0.375f, 12f, 54f, 30f, false);
-            Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 10f, 4f, 32f, 25f, false);
+            Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 10f, 6f, 32f, 25f, false);
             // Creatures have no body armor in Valheim (Character.GetBodyArmor is 0), so the pierce
             // arts ignore RESISTANCES instead, plus a flat bonus; the spear exposes the target.
             Add("Rend", "Рассечение", "копьё: цель уязвима (+урон от всех)", ArtKind.Expose, Sp, 1, 0.3f, 6f, 38f, 30f, false);
-            Add("Impale", "Пронзание", "пика: сильный игнор сопротивлений + урон", ArtKind.Pierce, Sp, 2, 0.95f, 4.5f, 48f, 30f, false);
-            Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 4.5f, 48f, 30f, false);
-            Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 4f, 32f, 25f, false);
+            Add("Impale", "Пронзание", "пика: сильный игнор сопротивлений + урон", ArtKind.Pierce, Sp, 2, 0.95f, 6f, 48f, 30f, false);
+            Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 6f, 48f, 30f, false);
+            Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 6f, 32f, 25f, false);
             // crits apply to every hit/shot in the window, sneak hits included (stack with the sneak bonus)
             Add("Fury", "Ярость", "кулаки: крит на каждом ударе", ArtKind.DamageMult, Un, 0, 1.75f, 6f, 43f, 25f, false);
             Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 1.9f, 22.5f, 48f, 20f, false);
@@ -243,7 +243,7 @@ namespace WeaponArts
                     ? 1f + (mag - 1f) * s                            // scale the bonus part
                     : mag * s;                                      // DoT amount / lifesteal fraction
                 float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
-                float window = Sv(a.Win) * (1f + durBonus);
+                float window = Mathf.Max(MinWindow, Sv(a.Win)) * (1f + durBonus);
                 ZDO z = OwnZdo(p);
                 if (z != null)
                 {

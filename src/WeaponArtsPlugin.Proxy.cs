@@ -294,7 +294,7 @@ namespace WeaponArts
                 float shieldNorm = Mathf.Clamp01(block / Mathf.Max(1f, Sv(_cfgTauntRefBlock)));
                 float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * shieldNorm), 0f, 0.5f);
                 px.TauntReduction = Mathf.Clamp(Mathf.Lerp(Sv(_cfgTauntReductionBase), Sv(_cfgTauntReductionBest), 0.8f * shieldNorm + 0.2f * skill), 0f, 0.9f);
-                px.TauntUntil = now + Sv(_cfgTauntDuration) * (1f + durBonus);
+                px.TauntUntil = now + Mathf.Max(MinWindow, Sv(_cfgTauntDuration)) * (1f + durBonus);
                 px.NextReapply = now + ReapplyInterval;
                 px.SinceMs = WorldMs();
                 px.ArtName = "Таунт";
@@ -319,7 +319,7 @@ namespace WeaponArts
             {
                 float power = (a.Kind == ArtKind.DamageMult || a.Kind == ArtKind.Stagger) ? 1f + (Sv(a.Mag) - 1f) * s : Sv(a.Mag) * s;
                 float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * tierNorm), 0f, 0.5f);
-                float window = Sv(a.Win) * (1f + durBonus);
+                float window = Mathf.Max(MinWindow, Sv(a.Win)) * (1f + durBonus);
                 // shots of a modless player cannot be counted here: a short time window instead
                 if (a.Shots != null) window = Mathf.Min(window, ProxyShotWindow);
                 if (a.Kind == ArtKind.Berserk)

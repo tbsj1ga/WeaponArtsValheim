@@ -89,7 +89,7 @@ namespace WeaponArts
             _cfgTowerParry = Config.Bind("04 Taunt", "TowerParryThreshold", 1f,
                 new ConfigDescription("A shield counts as a tower shield when its timed-block (parry) bonus is at most this.", new AcceptableValueRange<float>(1f, 3f)));
             _cfgTauntRadius = Config.Bind("04 Taunt", "Radius", 15f, new ConfigDescription("Monsters within this radius are pulled.", new AcceptableValueRange<float>(2f, 60f)));
-            _cfgTauntDuration = Config.Bind("04 Taunt", "Duration", 6f, new ConfigDescription("Seconds the aggro is held (before +50% cap scaling).", new AcceptableValueRange<float>(1f, 60f)));
+            _cfgTauntDuration = Config.Bind("04 Taunt", "Duration", 6f, new ConfigDescription("Seconds the aggro is held (before +50% cap scaling).", new AcceptableValueRange<float>(MinWindow, 60f)));
             _cfgTauntCooldown = Config.Bind("04 Taunt", "Cooldown", 48f, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(0f, 600f)));
             _cfgTauntStamina = Config.Bind("04 Taunt", "StaminaCost", 25f, new ConfigDescription("Stamina spent.", new AcceptableValueRange<float>(0f, 200f)));
             _cfgTauntReductionBase = Config.Bind("04 Taunt", "DamageReductionBase", 0.375f, new ConfigDescription("Damage reduction with the weakest tower shield and Blocking 0.", new AcceptableValueRange<float>(0f, 0.9f)));
@@ -152,7 +152,7 @@ namespace WeaponArts
             float durBonus = Mathf.Clamp(skill * Sv(_cfgSkillDurationScale) * (0.5f + 0.5f * shieldNorm), 0f, 0.5f);
 
             _tauntReduction = Mathf.Clamp(Mathf.Lerp(Sv(_cfgTauntReductionBase), Sv(_cfgTauntReductionBest), 0.8f * shieldNorm + 0.2f * skill), 0f, 0.9f);
-            _tauntUntil = now + Sv(_cfgTauntDuration) * (1f + durBonus);
+            _tauntUntil = now + Mathf.Max(MinWindow, Sv(_cfgTauntDuration)) * (1f + durBonus);
             _tauntCdUntil = now + _cfgTauntCooldown.Value;
             _gcdUntil = now + _cfgGlobalCooldown.Value;
             _tauntNextReapply = now + ReapplyInterval;
