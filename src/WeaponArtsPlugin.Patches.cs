@@ -14,20 +14,6 @@ namespace WeaponArts
         internal static bool s_penActive;
         internal static float s_penFraction;
 
-        private static readonly System.Reflection.FieldInfo s_backstabTime = AccessTools.Field(typeof(Character), "m_backstabTime");
-        private const float BackstabCooldown = 300f;   // Character.RPC_Damage: one sneak bonus per 5 min
-
-        // Same condition the game uses for the sneak bonus: a weapon bonus, an unalerted AI, and
-        // no sneak bonus on this victim in the last 5 minutes.
-        private static bool WillBackstab(Character victim, HitData hit)
-        {
-            if (victim == null || hit.m_backstabBonus <= 1f) return false;
-            BaseAI ai = victim.GetBaseAI();
-            if (ai == null || ai.IsAlerted()) return false;
-            if (s_backstabTime == null) return true;
-            return Time.time - (float)s_backstabTime.GetValue(victim) > BackstabCooldown;
-        }
-
         // Per-hit record for the postfix (vampirism + the debug damage log).
         private class HitState
         {
@@ -86,6 +72,12 @@ namespace WeaponArts
                         float red = Mathf.Clamp(p._tauntReduction, 0f, 0.9f);
                         if (red > 0f) hit.ApplyModifier(1f - red);
                     }
+                    // berserk: the local player takes less damage while it lasts
+                    if (__instance == Player.m_localPlayer && p.BerserkActive)
+                    {
+                        float red = p.BerserkReduction;
+                        if (red > 0f) hit.ApplyModifier(1f - red);
+                    }
                     if (__instance.IsPlayer()) return;                 // PvP-safe: creatures only
                     Character attacker = hit.GetAttacker();
                     if (attacker == null || !attacker.IsPlayer()) return;
@@ -111,10 +103,7 @@ namespace WeaponArts
                     switch (a.Kind)
                     {
                         case ArtKind.DamageMult:
-                            // crit arts do not stack on top of a real sneak hit. m_backstabBonus is
-                            // the weapon's multiplier and is set on EVERY hit; the game applies it
-                            // only on an unalerted AI, once per 5 min (Character.RPC_Damage).
-                            if (a.NoStackSneak && WillBackstab(__instance, hit)) break;
+                            // every hit in the window, sneak hits included (stacks with the sneak bonus)
                             hit.ApplyModifier(1f + (power - 1f) * bf);
                             break;
                         case ArtKind.Dot:

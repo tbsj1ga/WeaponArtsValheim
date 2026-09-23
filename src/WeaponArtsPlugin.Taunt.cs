@@ -89,11 +89,11 @@ namespace WeaponArts
             _cfgTowerParry = Config.Bind("04 Taunt", "TowerParryThreshold", 1f,
                 new ConfigDescription("A shield counts as a tower shield when its timed-block (parry) bonus is at most this.", new AcceptableValueRange<float>(1f, 3f)));
             _cfgTauntRadius = Config.Bind("04 Taunt", "Radius", 15f, new ConfigDescription("Monsters within this radius are pulled.", new AcceptableValueRange<float>(2f, 60f)));
-            _cfgTauntDuration = Config.Bind("04 Taunt", "Duration", 4f, new ConfigDescription("Seconds the aggro is held (before +50% cap scaling).", new AcceptableValueRange<float>(1f, 60f)));
-            _cfgTauntCooldown = Config.Bind("04 Taunt", "Cooldown", 40f, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(0f, 600f)));
+            _cfgTauntDuration = Config.Bind("04 Taunt", "Duration", 6f, new ConfigDescription("Seconds the aggro is held (before +50% cap scaling).", new AcceptableValueRange<float>(1f, 60f)));
+            _cfgTauntCooldown = Config.Bind("04 Taunt", "Cooldown", 48f, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(0f, 600f)));
             _cfgTauntStamina = Config.Bind("04 Taunt", "StaminaCost", 25f, new ConfigDescription("Stamina spent.", new AcceptableValueRange<float>(0f, 200f)));
-            _cfgTauntReductionBase = Config.Bind("04 Taunt", "DamageReductionBase", 0.25f, new ConfigDescription("Damage reduction with the weakest tower shield and Blocking 0.", new AcceptableValueRange<float>(0f, 0.9f)));
-            _cfgTauntReductionBest = Config.Bind("04 Taunt", "DamageReductionBest", 0.45f, new ConfigDescription("Damage reduction with the strongest shield and Blocking 100 (shield 80%, skill 20%).", new AcceptableValueRange<float>(0f, 0.9f)));
+            _cfgTauntReductionBase = Config.Bind("04 Taunt", "DamageReductionBase", 0.375f, new ConfigDescription("Damage reduction with the weakest tower shield and Blocking 0.", new AcceptableValueRange<float>(0f, 0.9f)));
+            _cfgTauntReductionBest = Config.Bind("04 Taunt", "DamageReductionBest", 0.675f, new ConfigDescription("Damage reduction with the strongest shield and Blocking 100 (shield 80%, skill 20%).", new AcceptableValueRange<float>(0f, 0.9f)));
             _cfgTauntRefBlock = Config.Bind("04 Taunt", "RefBlockPower", 100f, new ConfigDescription("Shield block power that counts as full tier for scaling.", new AcceptableValueRange<float>(10f, 400f)));
             _cfgTauntBosses = Config.Bind("04 Taunt", "AffectBosses", true, "Also pull bosses (their area attacks still hit others).");
             _cfgTauntTamed = Config.Bind("04 Taunt", "AffectTamed", false, "Also affect tamed creatures.");
@@ -138,7 +138,7 @@ namespace WeaponArts
         private void ActivateTaunt(Player p)
         {
             float now = Time.time;
-            if (now < _gcdUntil) return;
+            if (now < _gcdUntil) { Message(p, "Общий КД: " + Mathf.CeilToInt(_gcdUntil - now) + "с"); return; }
             if (now < _tauntCdUntil) { Message(p, "Таунт: КД " + Mathf.CeilToInt(_tauntCdUntil - now) + "с"); return; }
             float cost = _cfgTauntStamina.Value;
             if (cost > 0f && !p.HaveStamina(cost)) { Message(p, "Таунт: не хватает стамины"); return; }

@@ -11,7 +11,7 @@ namespace WeaponArts
         // ------------------------------------------------------------------
         // art model + registry
         // ------------------------------------------------------------------
-        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst, Pierce, Bleed, Expose }
+        internal enum ArtKind { DamageMult, Dot, Stagger, Vampirism, AoEHeal, AoEBurst, Pierce, Bleed, Expose, Berserk }
 
         internal class Art
         {
@@ -27,10 +27,10 @@ namespace WeaponArts
             // instant arts (AoEHeal / AoEBurst)
             public ConfigEntry<float> Radius, HLo0, HLo1, HHi0, HHi1;
             public bool IncludeSelf;
-            public bool NoStackSneak;   // crit arts: do not add on top of a backstab
             public ConfigEntry<float> Bonus;    // Pierce: flat damage bonus on top of the resist ignore
             public ConfigEntry<float> Linger;   // Expose: seconds the mark stays on the target
             public ConfigEntry<int> Shots;      // ranged: the art lasts this many shots (Window caps it)
+            public ConfigEntry<float> Regen;    // Berserk: HP per second while active
             public bool Heal1H;                 // Mend: shaman-style cast instead of the Rally visual
         }
 
@@ -46,7 +46,9 @@ namespace WeaponArts
             string s = "03 Arts - " + id;
             a.Mag = Config.Bind(s, "Magnitude", mag, "Base strength at skill 0 with the weakest weapon (grows with TierPowerBonus/SkillPowerBonus). Damage arts: multiplier; DoT: poison/bleed per hit; lifesteal: fraction; pierce: fraction of resistance ignored; expose: extra damage taken by the target; stagger: unused (every hit staggers).");
             if (kind == ArtKind.Pierce)
-                a.Bonus = Config.Bind(s, "DamageBonus", 0.15f, new ConfigDescription("Extra damage on top of the resistance ignore (0.15 = +15%), so the art matters on unresisting targets too.", new AcceptableValueRange<float>(0f, 2f)));
+                a.Bonus = Config.Bind(s, "DamageBonus", 0.225f, new ConfigDescription("Extra damage on top of the resistance ignore (0.15 = +15%), so the art matters on unresisting targets too.", new AcceptableValueRange<float>(0f, 2f)));
+            if (kind == ArtKind.Berserk)
+                a.Regen = Config.Bind(s, "RegenPerSecond", 4.5f, new ConfigDescription("HP restored per second while berserk (grows with tier/skill like Magnitude).", new AcceptableValueRange<float>(0f, 50f)));
             if (kind == ArtKind.Expose)
                 a.Linger = Config.Bind(s, "ExposeSeconds", 8f, new ConfigDescription("Seconds a struck target stays exposed (takes more damage from everyone).", new AcceptableValueRange<float>(1f, 30f)));
             a.Win = Config.Bind(s, "Window", win, new ConfigDescription("Seconds the art lasts (before skill/tier scaling; +50% cap).", new AcceptableValueRange<float>(0.5f, 30f)));
@@ -99,29 +101,29 @@ namespace WeaponArts
                 Bo = Skills.SkillType.Bows, Cr = Skills.SkillType.Crossbows;
 
             // Phase 1: on-target combat arts (applied on the owner of the struck creature).
-            Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.35f, 4f, 36f, 30f, false);
-            Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.15f, 4f, 40f, 25f, false);
-            // Creatures have no body armor in Valheim (Character.GetBodyArmor is 0), so the pierce
-            // arts ignore RESISTANCES instead, plus a flat bonus; the battleaxe exposes the target.
-            Add("Rend", "Рассечение", "боевой топор: цель уязвима (+урон от всех)", ArtKind.Expose, Ax, 2, 0.2f, 4f, 36f, 30f, false);
+            Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.525f, 6f, 43f, 30f, false);
+            Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.225f, 6f, 48f, 25f, false);
+            Add("Berserk", "Берсерк", "боевой топор: меньше урона по себе + реген HP", ArtKind.Berserk, Ax, 2, 0.375f, 12f, 54f, 30f, false);
             Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 10f, 4f, 32f, 25f, false);
-            Add("Pierce", "Пробитие", "копьё: игнор сопротивлений + урон", ArtKind.Pierce, Sp, 1, 0.5f, 4f, 32f, 25f, false);
-            Add("Impale", "Пронзание", "пика: сильный игнор сопротивлений + урон", ArtKind.Pierce, Sp, 2, 0.8f, 3f, 40f, 30f, false);
-            Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 3f, 40f, 30f, false);
+            // Creatures have no body armor in Valheim (Character.GetBodyArmor is 0), so the pierce
+            // arts ignore RESISTANCES instead, plus a flat bonus; the spear exposes the target.
+            Add("Rend", "Рассечение", "копьё: цель уязвима (+урон от всех)", ArtKind.Expose, Sp, 1, 0.3f, 6f, 38f, 30f, false);
+            Add("Impale", "Пронзание", "пика: сильный игнор сопротивлений + урон", ArtKind.Pierce, Sp, 2, 0.95f, 4.5f, 48f, 30f, false);
+            Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 4.5f, 48f, 30f, false);
             Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 4f, 32f, 25f, false);
-            Add("Fury", "Ярость", "кулаки: критический урон", ArtKind.DamageMult, Un, 0, 1.5f, 4f, 36f, 25f, false).NoStackSneak = true;
-            Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 1.6f, 15f, 40f, 20f, false);
-            focus.NoStackSneak = true;
-            Art bolts = Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят сопротивления + урон", ArtKind.Pierce, Cr, 0, 0.6f, 15f, 40f, 20f, false);
-            focus.Shots = Config.Bind("03 Arts - Focus", "Shots", 3, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
-            bolts.Shots = Config.Bind("03 Arts - PiercingBolts", "Shots", 2, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
+            // crits apply to every hit/shot in the window, sneak hits included (stack with the sneak bonus)
+            Add("Fury", "Ярость", "кулаки: крит на каждом ударе", ArtKind.DamageMult, Un, 0, 1.75f, 6f, 43f, 25f, false);
+            Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 1.9f, 22.5f, 48f, 20f, false);
+            Art bolts = Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят сопротивления + урон", ArtKind.Pierce, Cr, 0, 0.9f, 22.5f, 48f, 20f, false);
+            focus.Shots = Config.Bind("03 Arts - Focus", "Shots", 4, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
+            bolts.Shots = Config.Bind("03 Arts - PiercingBolts", "Shots", 3, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
 
             // Phase 2: heals, AoE burst, eitr surge.
             Skills.SkillType Cl = Skills.SkillType.Clubs, El = Skills.SkillType.ElementalMagic, Bl = Skills.SkillType.BloodMagic;
             AddHeal("Rally", "Клич", "кувалда 2H: хил себе и союзникам", Cl, 2, 60f, 40f, 15f, 60f, 25f, 100f, 10f, true);
             AddHeal("Mend", "Исцеление", "булава 1H: хил только союзникам", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 8f, false).Heal1H = true;
-            Add("EitrSurgeElem", "Вспышка эйтра", "посох стихий: +магический урон", ArtKind.DamageMult, El, 0, 1.4f, 4f, 50f, 30f, true);
-            Add("EitrSurgeBlood", "Вспышка эйтра", "посох крови: +магический урон", ArtKind.DamageMult, Bl, 0, 1.4f, 4f, 50f, 30f, true);
+            Add("EitrSurgeElem", "Вспышка эйтра", "посох стихий: +магический урон", ArtKind.DamageMult, El, 0, 1.6f, 6f, 60f, 30f, true);
+            Add("EitrSurgeBlood", "Вспышка эйтра", "посох крови: +магический урон", ArtKind.DamageMult, Bl, 0, 1.6f, 6f, 60f, 30f, true);
             // Whirlwind (кистень): flail skillType не подтверждён (в ваниле может совпасть с
             // Clubs 2H и конфликтовать с Rally) — регистрируется после проверки в игре.
         }
@@ -203,7 +205,7 @@ namespace WeaponArts
             if (a == null) { Message(p, "Нет активки для этого оружия"); return; }
 
             float now = Time.time;
-            if (now < _gcdUntil) return;
+            if (now < _gcdUntil) { Message(p, "Общий КД: " + Mathf.CeilToInt(_gcdUntil - now) + "с"); return; }
             float cdUntil;
             if (_cooldownUntil.TryGetValue(a.Id, out cdUntil) && now < cdUntil)
             {
@@ -250,6 +252,13 @@ namespace WeaponArts
                     z.Set(ZdoPower, power);
                 }
                 _activeUntil[a.Id] = now + window;                 // for the HUD countdown
+                if (a.Kind == ArtKind.Berserk)
+                {
+                    _berserkUntil = now + window;
+                    _berserkReduction = Mathf.Clamp(power, 0f, 0.8f);
+                    _berserkRegen = a.Regen != null ? Sv(a.Regen) * s : 0f;
+                    _berserkNextTick = now + 1f;
+                }
                 if (a.Shots != null)
                 {
                     _shotsLeft[a.Id] = Mathf.Max(1, a.Shots.Value);
@@ -343,6 +352,21 @@ namespace WeaponArts
         {
             float u;
             return _activeUntil.TryGetValue(a.Id, out u) ? (u - Time.time) : 0f;
+        }
+
+        // ------------------------------------------------------------------
+        // berserk (battleaxe): local damage reduction + regen while active
+        // ------------------------------------------------------------------
+        private float _berserkUntil, _berserkReduction, _berserkRegen, _berserkNextTick;
+
+        internal bool BerserkActive { get { return Time.time < _berserkUntil; } }
+        internal float BerserkReduction { get { return BerserkActive ? _berserkReduction : 0f; } }
+
+        private void BerserkTick(Player p, float now)
+        {
+            if (now >= _berserkUntil || _berserkRegen <= 0f || now < _berserkNextTick) return;
+            _berserkNextTick = now + 1f;
+            p.Heal(_berserkRegen, true);
         }
 
         // ------------------------------------------------------------------

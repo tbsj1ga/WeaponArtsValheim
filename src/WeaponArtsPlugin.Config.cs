@@ -28,8 +28,8 @@ namespace WeaponArts
                 "Key that triggers the art of the currently equipped weapon.");
             _cfgShowHud = Config.Bind("01 General", "ShowHud", true, "Show the current art and its state at the bottom of the screen.");
 
-            _cfgGlobalCooldown = Config.Bind("02 Balance", "GlobalCooldown", 3f,
-                new ConfigDescription("Seconds after any activation during which no art can fire (stops weapon-swap spam).", new AcceptableValueRange<float>(0f, 30f)));
+            _cfgGlobalCooldown = Config.Bind("02 Balance", "GlobalCooldown", 30f,
+                new ConfigDescription("Seconds after any activation during which no art can fire (stops weapon-swap spam). Shown in the HUD and on weapon swap.", new AcceptableValueRange<float>(0f, 120f)));
             _cfgBossFactor = Config.Bind("02 Balance", "BossEffectFactor", 0.5f,
                 new ConfigDescription("Multiplier of art strength against bosses. Crowd control does not apply to bosses regardless (vanilla immunity).", new AcceptableValueRange<float>(0f, 1f)));
             _cfgSkillPowerScale = Config.Bind("02 Balance", "SkillPowerBonus", 0.25f,

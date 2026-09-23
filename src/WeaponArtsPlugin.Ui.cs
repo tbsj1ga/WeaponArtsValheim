@@ -52,7 +52,12 @@ namespace WeaponArts
                 {
                     name = "Таунт"; desc = "башенный щит: стянуть мобов + резист";
                     if (TauntActive) { state = "активна " + FormatTime(_tauntUntil - Time.time) + "с (" + _tauntCount + ")"; c = amber; }
-                    else { float cd = TauntCooldownLeft(); if (cd > 0f) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = grey; } else { state = "готова"; c = green; } }
+                    else
+                    {
+                        float cd = Mathf.Max(TauntCooldownLeft(), GcdLeft());
+                        if (cd > 0f) { state = (TauntCooldownLeft() >= GcdLeft() ? "КД " : "общий КД ") + Mathf.CeilToInt(cd) + "с"; c = grey; }
+                        else { state = "готова"; c = green; }
+                    }
                 }
                 else
                 {
@@ -64,7 +69,8 @@ namespace WeaponArts
                     int shots = ShotsLeft(a);
                     if (act > 0f && shots > 0) { state = "активна: " + shots + " выстр. (" + Mathf.CeilToInt(act) + "с)"; c = amber; }
                     else if (act > 0f) { state = "активна " + FormatTime(act) + "с"; c = amber; }
-                    else if (cd > 0f) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = grey; }
+                    else if (cd > 0f && cd >= GcdLeft()) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = grey; }
+                    else if (GcdLeft() > 0f) { state = "общий КД " + Mathf.CeilToInt(GcdLeft()) + "с"; c = grey; }
                     else { state = "готова"; c = green; }
                 }
 

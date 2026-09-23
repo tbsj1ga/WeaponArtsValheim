@@ -27,7 +27,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.12.0";
+        public const string Version = "0.13.0";
 
         public static WeaponArtsPlugin Instance;
 
@@ -92,6 +92,8 @@ namespace WeaponArts
                 if (p == null || p.IsDead()) return;
                 if (ShortcutPressed(_cfgKey.Value) && !BlockedByUI()) TryActivate(p);
                 TauntTick(p, Time.time);
+                BerserkTick(p, Time.time);
+                GcdOnSwap(p, Time.time);
                 UpdateProxies(p, Time.time);
                 BleedTick(Time.time);
             }
@@ -145,6 +147,21 @@ namespace WeaponArts
         {
             return Mathf.Max(0f, seconds).ToString("0.0", CultureInfo.InvariantCulture);
         }
+
+        // Weapon (or shield) changed while the global cooldown runs: say how long it has left, so
+        // swapping to another weapon does not look like a broken art.
+        private string _lastLoadout = "";
+
+        private void GcdOnSwap(Player p, float now)
+        {
+            ItemDrop.ItemData w = p.GetCurrentWeapon();
+            string loadout = (w != null && w.m_shared != null ? w.m_shared.m_name : "") + (TauntShieldEquipped(p) ? "+shield" : "");
+            if (loadout == _lastLoadout) return;
+            _lastLoadout = loadout;
+            if (now < _gcdUntil) Message(p, "Общий КД: " + Mathf.CeilToInt(_gcdUntil - now) + "с");
+        }
+
+        internal float GcdLeft() { return _gcdUntil - Time.time; }
 
         private void Message(Player p, string text)
         {

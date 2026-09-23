@@ -56,6 +56,11 @@ namespace WeaponArts
             public int TauntCount;
             public float NextReapply;
             public long SinceMs;
+            // berserk
+            public float BerserkUntil;
+            public float BerserkReduction;
+            public float BerserkRegen;
+            public float NextRegen;
         }
 
         private readonly Dictionary<ZDOID, Proxy> _proxies = new Dictionary<ZDOID, Proxy>();
@@ -150,6 +155,12 @@ namespace WeaponArts
                     px.NextReapply = now + ReapplyInterval;
                     Character tank = ProxyTankChar(px.Id);
                     if (tank != null && !tank.IsDead()) px.TauntCount = ApplyTauntHold(tank, px.TauntUntil, Sv(_cfgTauntRadius), px.SinceMs);
+                }
+                if (now < px.BerserkUntil && px.BerserkRegen > 0f && now >= px.NextRegen)
+                {
+                    px.NextRegen = now + 1f;
+                    Character c = ProxyTankChar(px.Id);
+                    if (c != null && !c.IsDead()) HealChar(c, px.BerserkRegen);
                 }
                 if (_cfgProxyAnnounceReady.Value && !px.ReadyAnnounced && px.CooldownUntil > 0f && now >= px.CooldownUntil)
                 {
@@ -266,7 +277,7 @@ namespace WeaponArts
             return ArtFor(item);
         }
 
-        private const float ProxyShotWindow = 6f;
+        private const float ProxyShotWindow = 10f;
 
         private void TryActivateProxy(Player p, ZDO zdo, Proxy px, float now, string how)
         {
@@ -311,7 +322,16 @@ namespace WeaponArts
                 float window = Sv(a.Win) * (1f + durBonus);
                 // shots of a modless player cannot be counted here: a short time window instead
                 if (a.Shots != null) window = Mathf.Min(window, ProxyShotWindow);
-                px.ArtHash = a.Hash; px.ArtPower = power; px.ArtUntil = now + window;
+                if (a.Kind == ArtKind.Berserk)
+                {
+                    px.BerserkUntil = now + window;
+                    px.BerserkReduction = Mathf.Clamp(power, 0f, 0.8f);
+                    px.BerserkRegen = a.Regen != null ? Sv(a.Regen) * s : 0f;
+                    px.NextRegen = now + 1f;
+                    px.ArtHash = 0;                             // no on-target effect
+                }
+                else { px.ArtHash = a.Hash; px.ArtPower = power; }
+                px.ArtUntil = now + window;
                 Announce(a.Name + " за " + px.Name + ": " + window.ToString("0") + "с");
             }
             try { PlayArtEffects(p, a); } catch (Exception e) { Fail("proxy art effects", e); }
@@ -356,9 +376,13 @@ namespace WeaponArts
         {
             if (victim == null || !victim.IsPlayer() || victim == Player.m_localPlayer) return;
             Proxy px;
-            if (!_proxies.TryGetValue(victim.GetZDOID(), out px) || Time.time >= px.TauntUntil) return;
+            if (!_proxies.TryGetValue(victim.GetZDOID(), out px)) return;
             Character attacker = hit.GetAttacker();
             if (attacker == null) return;
+            // berserk: any creature's hit sent from our client (monsters we own)
+            if (Time.time < px.BerserkUntil && !attacker.IsPlayer() && px.BerserkReduction > 0f)
+                hit.ApplyModifier(1f - px.BerserkReduction);
+            if (Time.time >= px.TauntUntil) return;
             Hold h;
             if (!_tainted.TryGetValue(attacker.GetZDOID(), out h) || h.Target != px.Id || Time.time >= h.Until) return;
             float red = Mathf.Clamp(px.TauntReduction, 0f, 0.9f);
