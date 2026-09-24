@@ -48,7 +48,7 @@ namespace WeaponArts
             if (kind == ArtKind.Pierce)
                 a.Bonus = Config.Bind(s, "DamageBonus", 0.225f, new ConfigDescription("Extra damage on top of the resistance ignore (0.15 = +15%), so the art matters on unresisting targets too.", new AcceptableValueRange<float>(0f, 2f)));
             if (kind == ArtKind.Berserk)
-                a.Regen = Config.Bind(s, "RegenPerSecond", 4.5f, new ConfigDescription("HP restored per second while berserk (grows with tier/skill like Magnitude).", new AcceptableValueRange<float>(0f, 50f)));
+                a.Regen = Config.Bind(s, "RegenPerSecond", 10f, new ConfigDescription("HP restored per second while berserk (fixed, not scaled by tier/skill).", new AcceptableValueRange<float>(0f, 50f)));
             if (kind == ArtKind.Expose)
                 a.Linger = Config.Bind(s, "ExposeSeconds", 8f, new ConfigDescription("Seconds a struck target stays exposed (takes more damage from everyone).", new AcceptableValueRange<float>(1f, 30f)));
             a.Win = Config.Bind(s, "Window", win, new ConfigDescription("Seconds the art lasts (before skill/tier scaling; +50% cap).", new AcceptableValueRange<float>(MinWindow, 30f)));
@@ -102,9 +102,9 @@ namespace WeaponArts
 
             // Phase 1: on-target combat arts (applied on the owner of the struck creature).
             Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.525f, 6f, 43f, 30f, false);
-            Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.225f, 6f, 48f, 25f, false);
-            Add("Berserk", "Берсерк", "боевой топор: меньше урона по себе + реген HP", ArtKind.Berserk, Ax, 2, 0.375f, 12f, 54f, 30f, false);
-            Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 10f, 6f, 32f, 25f, false);
+            Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.3f, 6f, 48f, 25f, false);
+            Add("Berserk", "Берсерк", "боевой топор: меньше урона по себе + реген HP", ArtKind.Berserk, Ax, 2, 0.375f, 10f, 54f, 30f, false);
+            Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 12f, 6f, 32f, 25f, false);
             // Creatures have no body armor in Valheim (Character.GetBodyArmor is 0), so the pierce
             // arts ignore RESISTANCES instead, plus a flat bonus; the spear exposes the target.
             Add("Rend", "Рассечение", "копьё: цель уязвима (+урон от всех)", ArtKind.Expose, Sp, 1, 0.3f, 6f, 38f, 30f, false);
@@ -112,10 +112,10 @@ namespace WeaponArts
             Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 6f, 48f, 30f, false);
             Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 6f, 32f, 25f, false);
             // crits apply to every hit/shot in the window, sneak hits included (stack with the sneak bonus)
-            Add("Fury", "Ярость", "кулаки: крит на каждом ударе", ArtKind.DamageMult, Un, 0, 1.75f, 6f, 43f, 25f, false);
-            Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 1.9f, 22.5f, 48f, 20f, false);
+            Add("Fury", "Ярость", "кулаки: крит на каждом ударе", ArtKind.DamageMult, Un, 0, 2f, 6f, 43f, 25f, false);
+            Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 2.5f, 22.5f, 48f, 20f, false);
             Art bolts = Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят сопротивления + урон", ArtKind.Pierce, Cr, 0, 0.9f, 22.5f, 48f, 20f, false);
-            focus.Shots = Config.Bind("03 Arts - Focus", "Shots", 4, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
+            focus.Shots = Config.Bind("03 Arts - Focus", "Shots", 3, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
             bolts.Shots = Config.Bind("03 Arts - PiercingBolts", "Shots", 3, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
 
             // Phase 2: heals, AoE burst, eitr surge.
@@ -256,7 +256,7 @@ namespace WeaponArts
                 {
                     _berserkUntil = now + window;
                     _berserkReduction = Mathf.Clamp(power, 0f, 0.8f);
-                    _berserkRegen = a.Regen != null ? Sv(a.Regen) * s : 0f;
+                    _berserkRegen = a.Regen != null ? Sv(a.Regen) : 0f;   // fixed HP/s
                     _berserkNextTick = now + 1f;
                 }
                 if (a.Shots != null)
@@ -367,6 +367,7 @@ namespace WeaponArts
             if (now >= _berserkUntil || _berserkRegen <= 0f || now < _berserkNextTick) return;
             _berserkNextTick = now + 1f;
             p.Heal(_berserkRegen, true);
+            Debug("Berserk: +" + FormatTime(_berserkRegen) + " HP, " + FormatTime(_berserkUntil - now) + "s left");
         }
 
         // ------------------------------------------------------------------

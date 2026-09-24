@@ -25,7 +25,7 @@ namespace WeaponArts
 
         private void BindBleedConfig()
         {
-            _cfgBleedSeconds = Config.Bind("05 Bleed", "BleedSeconds", 5f,
+            _cfgBleedSeconds = Config.Bind("05 Bleed", "BleedSeconds", 6f,
                 new ConfigDescription("How long a bleed keeps ticking after the last hit that applied it.", new AcceptableValueRange<float>(1f, 30f)));
             _cfgBleedInterval = Config.Bind("05 Bleed", "TickInterval", 1f,
                 new ConfigDescription("Seconds between bleed ticks.", new AcceptableValueRange<float>(0.25f, 5f)));

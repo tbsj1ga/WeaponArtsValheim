@@ -326,7 +326,7 @@ namespace WeaponArts
                 {
                     px.BerserkUntil = now + window;
                     px.BerserkReduction = Mathf.Clamp(power, 0f, 0.8f);
-                    px.BerserkRegen = a.Regen != null ? Sv(a.Regen) * s : 0f;
+                    px.BerserkRegen = a.Regen != null ? Sv(a.Regen) : 0f;
                     px.NextRegen = now + 1f;
                     px.ArtHash = 0;                             // no on-target effect
                 }

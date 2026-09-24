@@ -27,7 +27,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.13.2";
+        public const string Version = "0.13.3";
 
         public static WeaponArtsPlugin Instance;
 
