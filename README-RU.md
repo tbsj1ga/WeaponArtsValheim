@@ -61,6 +61,35 @@
 при входе и при каждом изменении; клиенты пользуются ими, пока подключены. Локальное
 (клавиша, HUD, язык, поведение прокси, КД) остаётся у каждого своё.
 
+## Совместимость
+
+Проверено на **Valheim 1.0.16** (network version 40), **BepInEx 5.4.23.5** (BepInExPack_Valheim 5.4.2351).
+
+## Кому ставить
+
+| Кто | Что |
+|---|---|
+| Игроки с модом | используют способности клавишей (по умолчанию **C**) |
+| Хост / выделенный сервер | желательно: его балансные настройки действуют у всех клиентов с модом |
+| Игроки без мода | видят все эффекты и получают хил; чтобы пользоваться способностями самим, у модового игрока рядом должен быть включён `09 Proxy > Enabled` (**по умолчанию выключен**) |
+
+## Известные конфликты
+
+- Боевые оверхолы, которые переделывают урон (`Character.RPC_Damage`) или выбор цели монстрами, могут менять силу способностей или перебивать таунт.
+- Другой мод на клавише **C** — поменяйте `01 General > AbilityKey`.
+
+## Ошибки и отзывы
+
+GitHub Issues: https://github.com/tbsj1ga/WeaponArtsValheim/issues — приложите `BepInEx/LogOutput.log`.
+
+## Скриншоты
+
+<!-- Раскомментируйте строку, когда файл лежит в docs/media/ и отправлен на GitHub. -->
+<!-- ![атгейр: каждый удар — стаггер](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/crushing.gif) -->
+<!-- ![хил булавой с зелёными частицами шамана](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/mend.gif) -->
+<!-- ![таунт башенным щитом стягивает мобов](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/taunt.gif) -->
+<!-- ![HUD со способностью и её КД](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/hud.png) -->
+
 ## Установка
 
 Через r2modman / Thunderstore или положить `build/WeaponArts.dll` в

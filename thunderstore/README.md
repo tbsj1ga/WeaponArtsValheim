@@ -35,6 +35,35 @@ Active abilities ("arts") keyed to the weapon in your hands. Press one key (defa
 
 Install on every player who wants the arts and on the host / dedicated server.
 
+## Compatibility
+
+Tested with **Valheim 1.0.16** (network version 40), **BepInEx 5.4.23.5** (BepInExPack_Valheim 5.4.2351).
+
+## Who needs it
+
+| Who | What |
+|---|---|
+| Players with the mod | use their arts with the key (default **C**) |
+| Host / dedicated server | recommended: its balance settings apply to every client with the mod |
+| Players without the mod | see every effect and receive heals; to use arts themselves, `09 Proxy > Enabled` must be on for a modded player near them (**off by default**) |
+
+## Known conflicts
+
+- Combat overhauls that rework damage (`Character.RPC_Damage`) or monster targeting may change how strong the arts are or override the taunt.
+- Another mod bound to **C** — change `01 General > AbilityKey`.
+
+## Bugs and feedback
+
+GitHub Issues: https://github.com/tbsj1ga/WeaponArtsValheim/issues — please attach `BepInEx/LogOutput.log`.
+
+## Screenshots
+
+<!-- Uncomment each line once the file is in docs/media/ and pushed. -->
+<!-- ![the atgeir art: every hit staggers](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/crushing.gif) -->
+<!-- ![the mace heal with the shaman's green particles](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/mend.gif) -->
+<!-- ![the tower-shield taunt pulling monsters](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/taunt.gif) -->
+<!-- ![the HUD with the art and its cooldown](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/hud.png) -->
+
 Source, full documentation and the changelog: https://github.com/tbsj1ga/WeaponArtsValheim
 
 *Developed with the help of an AI assistant (Claude by Anthropic); the design
