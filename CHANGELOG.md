@@ -1,193 +1,194 @@
-# История изменений
+# Changelog
 
-Версия задаётся в одном месте — `WeaponArtsPlugin.Version` в `src/WeaponArtsPlugin.cs`.
+**English** · [Русский](CHANGELOG-RU.md)
 
-## 0.13.3 — КД в HUD, баланс
+The version is set in one place — `WeaponArtsPlugin.Version` in `src/WeaponArtsPlugin.cs`.
 
-- HUD: пока идёт общий КД, у любого оружия показывается серое «КД Xс» (максимум из своего
-  и общего КД), а не «готова».
-- Лук: x2.5, 3 выстрела. Кулаки: x2. Меч 1H: вампиризм 30%. Топор 1H: кровотечение 12/с,
-  6с. Берсерк: реген фиксированный 10 HP/с (больше не скейлится от тира/навыка), окно 10с.
-- Debug-лог каждого тика регена Берсерка.
+## 0.14.0 — English, publishing prep
 
-## 0.13.2 — Зелёные частицы хила шамана
+- All in-game text (HUD, messages, proxy chat lines, art names and descriptions) in
+  English and Russian. 01 General > Language: Auto (follows the game's language),
+  English, Russian; the setting is local and never taken from the server.
+- Documentation in English (README.md, CHANGELOG.md) with Russian copies (-RU.md), a
+  Thunderstore README; code and build-script comments in English.
+- Icon 256×256.
 
-- У атаки-хила шамана нет своих эффектов (в логе было «0 cast effects»), поэтому Исцеление
-  откатывалось на купол fx_guardstone_activate. Теперь спавнится сам объект хила шамана
-  (shaman_heal_aoe, берётся из m_spawnOnTrigger атаки) как чистый визуал: сетевой — видят
-  все, но все попадания/урон/статусы у копии выключены, никого не лечит и не бьёт. Плюс
-  vfx_greydwarf_shaman_pray и sfx_greydwarf_shaman_heal, если зарегистрированы, и hit-эффект
-  AoE на каждом вылеченном.
-- ShamanHeal можно поставить и Кличу: 07 Art Effects > HealVisual = ShamanHeal.
+## 0.13.3 — Cooldown in the HUD, balance
 
-## 0.13.1 — Минимальное окно 6с
+- HUD: while the global cooldown runs, every weapon shows a grey "cooldown Xs" (the
+  larger of its own and the global cooldown) instead of "ready".
+- Bow: x2.5, 3 shots. Fists: x2. 1H sword: 30% lifesteal. 1H axe: bleed 12/s for 6s.
+  Berserk: fixed regeneration of 10 HP/s (no longer scaled by tier/skill), window 10s.
+- Debug log line for every Berserk regeneration tick.
 
-- Ни одно окно активки и таунта не короче 6с: MinWindow в коде (кламп при активации, в
-  том числе для прокси и значений с сервера) и нижняя граница в конфиге. Кровотечение,
-  Отравление, Пронзание, Дробящий: окно 6с.
+## 0.13.2 — Green particles of the shaman heal
 
-## 0.13.0 — Берсерк, баланс ×1.5, общий КД 30с
+- The shaman's heal attack has no effects of its own, so Mend fell back to the
+  fx_guardstone_activate dome. Now the shaman's heal object itself (shaman_heal_aoe, taken
+  from the attack's m_spawnOnTrigger) is spawned as a pure visual: networked, so everyone
+  sees it, with every hit/damage/status switched off on the copy — it heals and hits
+  nobody. Plus vfx_greydwarf_shaman_pray and sfx_greydwarf_shaman_heal if registered, and
+  the AoE's hit effect on every healed player.
+- ShamanHeal can be set for Rally too: 07 Art Effects > HealVisual = ShamanHeal.
 
-- **Берсерк (боевой топор 2H)**: окно 12с — получаемый урон −37.5% и реген 4.5 HP/с
-  (оба растут от тира/навыка, снижение до 80% макс.). Для ваниль-игрока через прокси:
-  реген через RPC_Heal, снижение — от мобов, которыми владеет провайдер.
-- **Рассечение (уязвимость цели)** перенесено на копьё 1H; Пробитие убрано.
-- **Крит (Ярость, Фокус)** применяется к любому удару/выстрелу в окне, в том числе к
-  скрытной атаке (стакается с её бонусом).
-- **Баланс**: бонусная часть силы ×1.5, окна ×1.5, КД ×1.2 (кроме хилов, кровотечения,
-  яда); таунт: снижение 37.5–67.5%, 6с, КД 48с. Лук 4 выстрела, арбалет 3, потолок 22.5с;
-  прокси-окно для лука/арбалета 10с.
-- **Общий КД 30с** после любой активации (включая таунт): показывается в HUD
-  («общий КД Xс»), сообщением при смене оружия/щита и при попытке активации.
+## 0.13.1 — Minimum window 6s
 
-## 0.12.0 — Второй раунд правок по тесту
+- No art or taunt window is shorter than 6s: MinWindow in the code (clamped on activation,
+  also for the proxy and for values from the server) and the lower bound in the config.
+  Bleed, Envenom, Impale, Crushing: window 6s.
 
-- **Исправлено: хилы не доходили до других игроков** (Клич → ваниль, Исцеление → модовые,
-  вампиризм у не-владельца): вызывался RPC `Heal`, а игра регистрирует `RPC_Heal`.
-- **Исцеление (булава 1H)**: свой визуал — каст хила шамана гриндвёрга (его ванильные
-  эффекты, на кастере и на каждом вылеченном) + анимация каста посоха защиты. 07 Art
-  Effects: MendVisual, MendAnimation.
-- **Дробящий (атгейр)**: каждый удар по не-боссу в окне — гарантированный стаггер
-  (m_staggerMultiplier ≥ 100 → игра стаггерит сразу). Раньше множитель стаггер-урона
-  не пробивал порог жирных мобов. Окно 3с.
-- **Броня у мобов в Valheim = 0** (Character.GetBodyArmor всегда 0) — «игнор брони» ничего
-  не делал. Пробитие/Пронзание/Бронебой теперь игнорят долю **сопротивлений** (не
-  иммунитетов) + DamageBonus (+15%). Патч GetBodyArmor убран, вместо него
-  HitData.ApplyResistance.
-- **Рассечение (боевой топор)** → «Уязвимость»: удары в окне помечают цель (ZDO) на
-  ExposeSeconds (8с), она получает +20% урона от **всех** игроков, включая ваниль.
-- **Фокус/Бронебой**: активка на N выстрелов (Shots: лук 3, арбалет 2), окно — потолок
-  15с; после последнего выстрела 2.5с на долёт стрел. HUD показывает остаток выстрелов.
-  Для ваниль-игрока (прокси) — просто окно 6с.
-- **Скейл силы**: Magnitude теперь минимум (навык 0, слабое оружие), сверху
-  TierPowerBonus (+25% за топ-тир) и SkillPowerBonus (+25% на 100 навыка). Раньше на низком
-  тире бонус резался вдвое (Натиск 1.35 → фактически 1.17).
-- **Крит не стакается со скрытной** — добавлен игровой таймер 5 мин (m_backstabTime):
-  по ненастороженному мобу (или тестовому манекену) крит теперь работает, кроме
-  удара, который действительно получил бонус скрытности.
-- **Debug-лог урона**: при 01 General > Debug каждое попадание с активкой пишет урон
-  до/после, множитель, потерю HP, уязвимость и стаггер.
+## 0.13.0 — Berserk, balance ×1.5, global cooldown 30s
 
-## 0.11.0 — Правки по тесту в игре
+- **Berserk (2H battleaxe)**: 12s window — damage taken −37.5% and 4.5 HP/s
+  regeneration (both grow with tier/skill, reduction capped at 80%). For a player without
+  the mod through the proxy: regeneration through RPC_Heal, the reduction applies to hits
+  from monsters the provider owns.
+- **Rend (exposed target)** moved to the 1H spear; Pierce removed.
+- **Crits (Fury, Focus)** apply to every hit/shot in the window, sneak attacks included
+  (stacking with the sneak bonus).
+- **Balance**: the bonus part of strength ×1.5, windows ×1.5, cooldowns ×1.2 (except
+  heals, bleed, poison); taunt: reduction 37.5–67.5%, 6s, cooldown 48s. Bow 4 shots,
+  crossbow 3, time cap 22.5s; proxy window for bow/crossbow 10s.
+- **Global cooldown 30s** after any activation (the taunt included): shown in the HUD,
+  as a message on a weapon/shield swap and on an activation attempt.
 
-- **Исправлено: не работали Фокус (лук) и Ярость (кулаки).** Проверка «не стакать крит
-  со скрытной» смотрела на m_backstabBonus, а игра ставит его на КАЖДЫЙ удар (это
-  множитель оружия) — крит отбрасывался всегда. Теперь условие как в игре: бонус
-  оружия > 1 И ИИ цели не насторожен.
-- **Активация при зажатых клавишах** (на ходу, в блоке): KeyboardShortcut.IsDown()
-  требовал, чтобы других клавиш не было; теперь проверяется только клавиша + её
-  модификаторы.
-- **HUD**: по умолчанию выше полосы стамины (PositionY 0.76), позиция и шрифт в
-  08 HUD; скрывается в меню (Esc), на карте, в чате/консоли, на паузе, при скрытом
-  интерфейсе, в режиме строительства и катсценах; тень для читаемости.
-- **Отсчёт активного окна** в HUD («активна 3.2с»), длительность в сообщении
-  активации.
-- **Эффекты активации для всех активок** (07 Art Effects: Sound Perfect/None, Visual,
-  отдельный HealVisual для хилов); и для прокси.
+## 0.12.0 — Second round of test fixes
 
-## 0.10.0 — Эффекты активации таунта
+- **Fixed: heals did not reach other players** (Rally → vanilla players, Mend → modded
+  players, lifesteal on a non-owner): the RPC `Heal` was invoked, the game registers
+  `RPC_Heal`.
+- **Mend (1H mace)**: its own visual — the greydwarf shaman's heal cast (its vanilla
+  effects, on the caster and on every healed player) + the staff-of-protection cast
+  animation. 07 Art Effects: MendVisual, MendAnimation.
+- **Crushing (atgeir)**: every hit on a non-boss in the window is a guaranteed stagger
+  (m_staggerMultiplier ≥ 100 → the game staggers at once). Before, the stagger-damage
+  multiplier did not break the threshold of heavy monsters. Window 3s.
+- **Creatures have 0 armor in Valheim** (Character.GetBodyArmor is always 0) — "armor
+  ignore" did nothing. Pierce/Impale/Piercing Bolts now ignore a share of
+  **resistances** (not immunities) + DamageBonus (+15%). The GetBodyArmor patch is gone,
+  HitData.ApplyResistance is patched instead.
+- **Rend (battleaxe)** → "Exposed": hits in the window mark the target (ZDO) for
+  ExposeSeconds (8s), it takes +20% damage from **every** player, vanilla ones included.
+- **Focus/Piercing Bolts**: the art lasts N shots (Shots: bow 3, crossbow 2), the window
+  is a 15s cap; after the last shot 2.5s for the arrows in flight. The HUD shows the shots
+  left. For a player without the mod (proxy) — a plain 6s window.
+- **Strength scaling**: Magnitude is now the minimum (skill 0, weakest weapon), on top
+  TierPowerBonus (+25% at top tier) and SkillPowerBonus (+25% at skill 100). Before, the
+  bonus was halved at a low tier (Onslaught 1.35 → effectively 1.17).
+- **Crit does not stack with a sneak attack** — the game's 5-minute timer
+  (m_backstabTime) is checked: on an unalerted monster (or a test dummy) the crit now
+  works, except on the hit that really got the sneak bonus.
+- **Damage debug log**: with 01 General > Debug every hit under an art logs the damage
+  before/after, the multiplier, HP lost, exposure and stagger.
 
-- Порт эффектов из ShieldTaunt: звук и визуал при таунте, только ванильные префабы
-  (видят и клиенты без мода). Конфиг 06 Taunt Effects: Sound (Block/Perfect/None),
-  Visual (None/GuardianPower/имя префаба: fx_eikthyr_stomp, fx_Adrenaline1,
-  fx_guardstone_activate, vfx_perfectblock, fx_gjall_taunt). Работает и через прокси.
+## 0.11.0 — In-game test fixes
 
-## 0.9.0 — Физическое кровотечение
+- **Fixed: Focus (bow) and Fury (fists) did nothing.** The "no crit on top of a sneak
+  attack" check looked at m_backstabBonus, and the game sets it on EVERY hit (it is the
+  weapon's multiplier) — the crit was always dropped. Now the condition is the game's:
+  weapon bonus > 1 AND the target's AI is not alerted.
+- **Activation while other keys are held** (moving, blocking): KeyboardShortcut.IsDown()
+  required no other key to be down; now only the key and its modifiers are checked.
+- **HUD**: above the stamina bar by default (PositionY 0.76), position and font in 08
+  HUD; hidden in the menu (Esc), on the map, in chat/console, on pause, with the UI
+  hidden, in build mode and cutscenes; a shadow for readability.
+- **Countdown of the active window** in the HUD ("active 3.2s"), the duration in the
+  activation message.
+- **Activation effects for every art** (07 Art Effects: Sound Perfect/None, Visual, a
+  separate HealVisual for heals); for the proxy too.
 
-- Кровотечение (топор 1H) — теперь отдельный физический тикающий DoT (ArtKind.Bleed),
-  а не яд: регистрируется на владельце цели, тикает физуроном раз в секунду, обходит
-  броню (как яд), считает владелец, атакующий сохраняется для кредита. Тик помечен
-  флагом, чтобы не рекурсировать через RPC_Damage. Отдельно от яда ножей (Envenom).
-  Конфиг 05 Bleed: BleedSeconds, TickInterval.
+## 0.10.0 — Taunt activation effects
 
-## 0.8.0 — Истинный игнор брони
+- Effects ported from ShieldTaunt: sound and visual on taunt, vanilla prefabs only (clients
+  without the mod see them too). Config 06 Taunt Effects: Sound (Block/Perfect/None),
+  Visual (None/GuardianPower/a prefab name: fx_eikthyr_stomp, fx_Adrenaline1,
+  fx_guardstone_activate, vfx_perfectblock, fx_gjall_taunt). Works through the proxy too.
 
-- Пробитие/Рассечение/Пронзание/Бронебой теперь реально снижают броню цели, а не
-  множат урон: новый ArtKind.Pierce, на время удара статический pen-флаг, патч
-  Character.GetBodyArmor (postfix) умножает броню на (1 - доля). Доля игнора
-  берётся из Magnitude (Rend 0.4, Pierce 0.5, Impale 0.8, Бронебой 0.6), скейлится
-  навыком/тиром и режется BossEffectFactor, клампится до 0.95. Работает и через
-  прокси для ваниль-игрока. Финалайзер сбрасывает флаг при исключении.
+## 0.9.0 — Physical bleed
 
-## 0.7.0 — Фаза 7: доводка (часть)
+- Bleed (1H axe) is now its own physical ticking DoT (ArtKind.Bleed), not poison:
+  registered on the target's owner, ticks physical damage once a second, bypasses armor
+  (like poison), computed by the owner, the attacker is kept for credit. The tick is
+  flagged so it does not recurse through RPC_Damage. Separate from the knives' poison
+  (Envenom). Config 05 Bleed: BleedSeconds, TickInterval.
 
-- Крит (Ярость/Фокус) не стакается со скрытной атакой (проверка m_backstabBonus).
-- Таунт: скилл-ап Blocking за стянутых мобов; straight-charge (мобы идут прямо, не
-  кружат); мульти-танк арбитраж через ZDO-метки (holdby/until/since) — два модовых
-  танка не дерутся за мобов, побеждает более поздняя активация.
-- Отложено (нужен тест/тюнинг): истинный игнор брони (пробитие/бронебой сейчас
-  множитель), физ. кровотечение (через яд-DoT), эффекты активации таунта,
-  регистрация кистеня (skillType флейла подтвердить в игре).
+## 0.8.0 — True armor ignore
 
-## 0.6.0 — Фаза 6: окно настроек (ConfigurationManager)
+- Pierce/Rend/Impale/Piercing Bolts reduce the target's armor instead of multiplying
+  damage: a new ArtKind.Pierce, a static pen flag for the duration of the hit, a
+  Character.GetBodyArmor postfix multiplies the armor by (1 - share). Superseded in
+  0.12.0 (creatures have no armor).
 
-- Настройки применяются в игре без перезапуска: мод читает значения в момент
-  активации и ничего не кэширует, поэтому правки из BepInEx ConfigurationManager
-  (окно по F1) действуют сразу. Задокументировано в README; хард-зависимость не
-  добавлена (версию строки сверить при заливке).
+## 0.7.0 — Polish (part)
 
-## 0.5.0 — Фаза 5: синхронизация конфига с хостом
+- Crits (Fury/Focus) do not stack with a sneak attack (m_backstabBonus check).
+- Taunt: Blocking skill gain per pulled monster; straight charge (monsters come straight
+  instead of circling); multi-tank arbitration through ZDO marks (holdby/until/since) —
+  two modded tanks do not fight over monsters, the later activation wins.
+- Postponed (needs testing/tuning): true armor ignore, physical bleed, taunt activation
+  effects, flail registration (confirm the flail's skill type in game).
 
-- Сервер рассылает балансные настройки всем клиентам с модом (при коннекте и при
-  изменении), клиент применяет их через резолверы Sv/Sb/Ss, пока подключён.
-  Синкается всё, кроме секции прокси (поведение клиента) и локального пейсинга
-  (КД/стоимость/GCD). Generic-пакет по всем ConfigEntry (float/bool/string).
-- Патчи ZNet.Awake (регистрация RPC), RPC_PeerInfo (отправка после логина),
-  OnDestroy (сброс). Ключ 10 Sync > SyncConfig (по умолч. on).
+## 0.6.0 — Settings window (ConfigurationManager)
 
-## 0.4.0 — Фаза 4: прокси для ваниль-игрока
+- Settings apply in game without a restart: the mod reads the values at activation and
+  caches nothing, so edits from BepInEx ConfigurationManager (window on F1) take effect at
+  once. Documented in the README; no hard dependency added.
 
-- Дефолт-кнопка активки — C.
-- Активки за игрока БЕЗ мода: триггер ванильной эмоцией (/challenge) или словом в
-  чате; провайдер (ближайший модовый, режим Nearby, работает и на дедике) читает
-  оружие/щит из ZDO, выбирает активку (таунт при башенном щите — приоритет) и
-  применяет: оконные активки через таблицу прокси в RPC_Damage, таунт — удержание
-  мобов на нём + резист в Character.Damage, хилы/бурст — мгновенно на нём.
-- Скейл по SkillForModless + тир из ZDO; свой кулдаун (×CooldownFactor).
-- Фидбек в чат: активация, «готово» по КД, чат-запрос словом (art?).
-- Метка мода в ZDO (модовых за них не таунтит).
+## 0.5.0 — Config sync with the host
 
-## 0.3.0 — Фаза 3: порт таунта башенного щита
+- The server sends its balance settings to every client with the mod (on connect and on
+  change), the client applies them through the Sv/Sb/Ss resolvers while connected.
+  Everything is synced except the proxy section (client behaviour) and local pacing
+  (cooldowns/costs/global cooldown). A generic packet of every ConfigEntry
+  (float/bool/string). Key 10 Sync > SyncConfig (on by default).
+- Patches ZNet.Awake (RPC registration), RPC_PeerInfo (send after login), OnDestroy
+  (reset).
 
-- Таунт как активка башенного щита, **приоритет над активкой 1H-оружия**: детект
-  щита (Tower/AnyShield/None по `m_timedBlockBonus`), захват мобов в радиусе
-  (`ClaimOwnership`), форс-цель на танка через рефлексию полей `MonsterAI`,
-  удержание постфиксом `MonsterAI.UpdateTarget`, снижение получаемого урона в
-  `Character.RPC_Damage`. Скейл (радиус-резист от блок-силы щита, длительность от
-  навыка Blocking с потолком +50%).
-- HUD показывает Таунт (активна/КД/готова), когда надет щит.
-- Пока не портировано (следующие фазы): прокси таунта для ваниль-игрока, эффекты
-  активации, скилл-ап Blocking, straight-charge, мульти-танк ZDO-арбитраж.
+## 0.4.0 — Proxy for a player without the mod
 
-## 0.2.0 — Фаза 2: хилы, AoE-бурст, вспышка эйтра
+- Default art key — C.
+- Arts for a player WITHOUT the mod: triggered by a vanilla emote (/challenge) or a chat
+  word; a provider (the nearest modded player, Nearby mode, works on a dedicated server
+  too) reads the weapon/shield from their ZDO, picks the art (taunt with a tower shield
+  has priority) and applies it: window arts through the proxy table in RPC_Damage, the
+  taunt as holding monsters on them + reduction in Character.Damage, heals instantly.
+- Scaled by SkillForModless + the tier from the ZDO; own cooldown (×CooldownFactor).
+- Chat feedback: activation, "ready" after the cooldown, a query word (art?).
+- A mod mark in the ZDO (modded players are not taunted for).
 
-- **Rally** (кувалда 2H) и **Mend** (булава 1H) — AoE-хил рандомным окном
-  `random(lo, hi)`, окно растёт от тира оружия и навыка (§5.1 ТЗ); Rally лечит
-  себя+союзников, Mend только союзников; доставка через `RPC_Heal` (доходит и до
-  ваниль-союзника).
-- **Вспышка эйтра** (посохи стихий и крови) — +магический урон на окно, стоит эйтр.
-- **AoE-бурст** (kind реализован): мгновенный урон существам вокруг через
-  `Character.Damage(HitData)`. Кистень (Вихрь) не зарегистрирован — нужно
-  подтвердить `skillType` флейла в игре (может совпасть с Clubs 2H и конфликтовать
-  с Rally).
+## 0.3.0 — Tower-shield taunt ported
 
-## 0.1.0 — Фаза 1: каркас и боевые активки
+- The taunt as the tower shield's art, **priority over the 1H weapon's art**: shield
+  detection (Tower/AnyShield/None by `m_timedBlockBonus`), claiming monsters in the radius
+  (`ClaimOwnership`), forcing the target onto the tank through reflection on `MonsterAI`
+  fields, holding it with a `MonsterAI.UpdateTarget` postfix, damage reduction in
+  `Character.RPC_Damage`. Scaling (reduction from the shield's block power, duration from
+  Blocking with a +50% cap).
+- The HUD shows Taunt (active/cooldown/ready) when a shield is equipped.
 
-- Активка выбирается по экипированному оружию (`skillType` + 1H/2H), одна клавиша.
-- Свой кулдаун на каждую активку + глобальный GCD (анти-абуз сменой оружия);
-  стоимость стамины/эйтра; скейл силы и длительности от тира оружия и навыка
-  (потолок длительности +50%).
-- Единый путь: при активации игрок пишет активку (id/срок по серверному времени/
-  силу) в свой ZDO; патч `Character.RPC_Damage` на владельце цели применяет её.
-- Реализованы: Натиск, Рассечение, Пробитие, Пронзание, Ярость, Фокус, Бронебой
-  (множитель урона); Кровотечение, Отравление (яд-DoT); Дробящий (стаггер);
-  Кровожадность (вампиризм).
-- Баланс: эффекты только по существам (PvP-safe), боссам ×`BossEffectFactor`,
-  боссы иммунны к стаггеру.
-- HUD внизу экрана (название + описание + готова/КД); консоль `weaponarts`.
-- Сборка `build.ps1`, проверка `check-refs.ps1`.
+## 0.2.0 — Heals, AoE burst, eitr surge
 
-### Пока не реализовано (следующие фазы, см. ShieldTaunt\TASK-weapon-arts.md)
-- Хилы Rally/Mend (рандом-окно), Вихрь (AoE-бурст), Вспышка эйтра.
-- Порт таунта башенного щита; прокси для ваниль-игрока; синк с хостом; окно настроек.
-- Истинный игнор брони (пробитие/бронебой), крит без стака со скрытной, физ. кровь.
+- **Rally** (2H sledge) and **Mend** (1H mace) — AoE heal with a random roll
+  `random(lo, hi)`, the range grows with weapon tier and skill; Rally heals
+  yourself + allies, Mend only allies; delivered through `RPC_Heal` (reaches vanilla allies
+  too).
+- **Eitr surge** (elemental and blood staves) — more magic damage for a window, costs
+  eitr.
+- **AoE burst** (kind implemented): instant damage to creatures around through
+  `Character.Damage(HitData)`. The flail (Whirlwind) is not registered — the flail's
+  `skillType` has to be confirmed in game.
+
+## 0.1.0 — Skeleton and combat arts
+
+- The art is chosen by the equipped weapon (`skillType` + 1H/2H), one key.
+- Own cooldown per art + a global cooldown (against weapon-swap abuse); stamina/eitr
+  cost; strength and duration scale with weapon tier and skill (duration capped at +50%).
+- One path: on activation the player writes the art (id/expiry on server time/power)
+  into their ZDO; a `Character.RPC_Damage` patch on the target's owner applies it.
+- Implemented: Onslaught, Rend, Pierce, Impale, Fury, Focus, Piercing Bolts (damage
+  multiplier); Bleed, Envenom (poison DoT); Crushing (stagger); Bloodthirst (lifesteal).
+- Balance: effects on creatures only (PvP-safe), ×`BossEffectFactor` on bosses, bosses
+  are immune to stagger.
+- HUD at the bottom of the screen (name + description + ready/cooldown); console
+  `weaponarts`.
+- Build `build.ps1`, check `check-refs.ps1`.

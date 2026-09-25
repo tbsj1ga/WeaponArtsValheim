@@ -50,13 +50,13 @@ namespace WeaponArts
 
                 if (TauntShieldEquipped(pl))
                 {
-                    name = "Таунт"; desc = "башенный щит: стянуть мобов + резист";
-                    if (TauntActive) { state = "активна " + FormatTime(_tauntUntil - Time.time) + "с (" + _tauntCount + ")"; c = amber; }
+                    name = L("Taunt", "Таунт"); desc = L("tower shield: pull monsters + damage reduction", "башенный щит: стянуть мобов + резист");
+                    if (TauntActive) { state = L("active ", "активна ") + FormatTime(_tauntUntil - Time.time) + L("s (", "с (") + _tauntCount + ")"; c = amber; }
                     else
                     {
                         float cd = Mathf.Max(TauntCooldownLeft(), GcdLeft());
-                        if (cd > 0f) { state = "КД " + Mathf.CeilToInt(cd) + "с"; c = grey; }
-                        else { state = "готова"; c = green; }
+                        if (cd > 0f) { state = L("cooldown ", "КД ") + Mathf.CeilToInt(cd) + L("s", "с"); c = grey; }
+                        else { state = L("ready", "готова"); c = green; }
                     }
                 }
                 else
@@ -67,10 +67,10 @@ namespace WeaponArts
                     float act = ActiveLeft(a);
                     float cd = CooldownLeft(a);
                     int shots = ShotsLeft(a);
-                    if (act > 0f && shots > 0) { state = "активна: " + shots + " выстр. (" + Mathf.CeilToInt(act) + "с)"; c = amber; }
-                    else if (act > 0f) { state = "активна " + FormatTime(act) + "с"; c = amber; }
-                    else if (Mathf.Max(cd, GcdLeft()) > 0f) { state = "КД " + Mathf.CeilToInt(Mathf.Max(cd, GcdLeft())) + "с"; c = grey; }   // own CD or the global one
-                    else { state = "готова"; c = green; }
+                    if (act > 0f && shots > 0) { state = L("active: ", "активна: ") + shots + L(" shots (", " выстр. (") + Mathf.CeilToInt(act) + L("s)", "с)"); c = amber; }
+                    else if (act > 0f) { state = L("active ", "активна ") + FormatTime(act) + L("s", "с"); c = amber; }
+                    else if (Mathf.Max(cd, GcdLeft()) > 0f) { state = L("cooldown ", "КД ") + Mathf.CeilToInt(Mathf.Max(cd, GcdLeft())) + L("s", "с"); c = grey; }   // own CD or the global one
+                    else { state = L("ready", "готова"); c = green; }
                 }
 
                 EnsureStyles();

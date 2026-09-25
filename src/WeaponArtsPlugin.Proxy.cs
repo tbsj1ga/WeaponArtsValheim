@@ -165,7 +165,7 @@ namespace WeaponArts
                 if (_cfgProxyAnnounceReady.Value && !px.ReadyAnnounced && px.CooldownUntil > 0f && now >= px.CooldownUntil)
                 {
                     px.ReadyAnnounced = true;
-                    Announce(px.Name + ": " + px.ArtName + " готово");
+                    Announce(px.Name + ": " + px.ArtName + L(" ready", " готово"));
                 }
             }
 
@@ -282,7 +282,7 @@ namespace WeaponArts
         private void TryActivateProxy(Player p, ZDO zdo, Proxy px, float now, string how)
         {
             if (!IsProviderFor(p)) { Debug("proxy for " + px.Name + " (" + how + "): provider is elsewhere"); return; }
-            if (now < px.CooldownUntil) { Announce(px.Name + ": КД " + Mathf.CeilToInt(px.CooldownUntil - now) + "с"); return; }
+            if (now < px.CooldownUntil) { Announce(px.Name + L(": cooldown ", ": КД ") + Mathf.CeilToInt(px.CooldownUntil - now) + L("s", "с")); return; }
 
             bool taunt; ItemDrop.ItemData item; int quality;
             Art a = ResolveProxyArt(zdo, out taunt, out item, out quality);
@@ -297,24 +297,24 @@ namespace WeaponArts
                 px.TauntUntil = now + Mathf.Max(MinWindow, Sv(_cfgTauntDuration)) * (1f + durBonus);
                 px.NextReapply = now + ReapplyInterval;
                 px.SinceMs = WorldMs();
-                px.ArtName = "Таунт";
+                px.ArtName = L("Taunt", "Таунт");
                 px.TauntCount = ApplyTauntHold(p, px.TauntUntil, Sv(_cfgTauntRadius), px.SinceMs);
                 try { PlayActivationEffects(p, item != null && item.m_shared != null ? item.m_shared.m_blockEffect : null); } catch (Exception e) { Fail("proxy effects", e); }
                 px.CooldownUntil = now + _cfgTauntCooldown.Value * _cfgProxyCooldownFactor.Value;
                 px.ReadyAnnounced = false;
-                Announce("Таунт за " + px.Name + ": " + px.TauntCount + " мобов");
+                Announce(L("Taunt for ", "Таунт за ") + px.Name + ": " + px.TauntCount + L(" monsters", " мобов"));
                 return;
             }
 
-            if (a == null) { Announce(px.Name + ": нет активки для оружия"); return; }
+            if (a == null) { Announce(px.Name + L(": no art for this weapon", ": нет активки для оружия")); return; }
             px.ArtName = a.Name;
 
             float tierNorm = Mathf.Clamp01(TotalDamage(item.GetDamage(quality, 0f)) / Mathf.Max(1f, Sv(_cfgRefWeaponDamage)));
             float s = PowerScale(tierNorm, skill);
             float p01 = 0.5f * tierNorm + 0.5f * skill;
 
-            if (a.Kind == ArtKind.AoEHeal) { int n = DoHeal(p, a, p01); Announce(a.Name + " за " + px.Name + " (" + n + ")"); }
-            else if (a.Kind == ArtKind.AoEBurst) { int n = DoBurst(p, a, item, s); Announce(a.Name + " за " + px.Name + " (" + n + ")"); }
+            if (a.Kind == ArtKind.AoEHeal) { int n = DoHeal(p, a, p01); Announce(a.Name + L(" for ", " за ") + px.Name + " (" + n + ")"); }
+            else if (a.Kind == ArtKind.AoEBurst) { int n = DoBurst(p, a, item, s); Announce(a.Name + L(" for ", " за ") + px.Name + " (" + n + ")"); }
             else
             {
                 float power = (a.Kind == ArtKind.DamageMult || a.Kind == ArtKind.Stagger) ? 1f + (Sv(a.Mag) - 1f) * s : Sv(a.Mag) * s;
@@ -332,7 +332,7 @@ namespace WeaponArts
                 }
                 else { px.ArtHash = a.Hash; px.ArtPower = power; }
                 px.ArtUntil = now + window;
-                Announce(a.Name + " за " + px.Name + ": " + window.ToString("0") + "с");
+                Announce(a.Name + L(" for ", " за ") + px.Name + ": " + window.ToString("0") + L("s", "с"));
             }
             try { PlayArtEffects(p, a); } catch (Exception e) { Fail("proxy art effects", e); }
             px.CooldownUntil = now + a.Cd.Value * _cfgProxyCooldownFactor.Value;
@@ -343,11 +343,11 @@ namespace WeaponArts
         {
             bool taunt; ItemDrop.ItemData item; int quality;
             Art a = ResolveProxyArt(zdo, out taunt, out item, out quality);
-            string name = taunt ? "Таунт" : (a != null ? a.Name : "нет активки");
-            string desc = taunt ? "стянуть мобов + резист" : (a != null ? a.Desc : "");
+            string name = taunt ? L("Taunt", "Таунт") : (a != null ? a.Name : L("no art", "нет активки"));
+            string desc = taunt ? L("pull monsters + damage reduction", "стянуть мобов + резист") : (a != null ? a.Desc : "");
             float now = Time.time;
-            string state = now < px.TauntUntil || now < px.ArtUntil ? "активна"
-                : (now < px.CooldownUntil ? "КД " + Mathf.CeilToInt(px.CooldownUntil - now) + "с" : "готова");
+            string state = now < px.TauntUntil || now < px.ArtUntil ? L("active", "активна")
+                : (now < px.CooldownUntil ? L("cooldown ", "КД ") + Mathf.CeilToInt(px.CooldownUntil - now) + L("s", "с") : L("ready", "готова"));
             Announce(px.Name + ": " + name + " — " + state + (desc.Length > 0 ? " (" + desc + ")" : ""));
         }
 

@@ -15,6 +15,21 @@ namespace WeaponArts
         private ConfigEntry<bool> _cfgDebug;
         private ConfigEntry<KeyboardShortcut> _cfgKey;
         private ConfigEntry<bool> _cfgShowHud;
+        private static ConfigEntry<string> _cfgLanguage;
+
+        // English or Russian text by 01 General/Language (Auto follows the game's language).
+        internal static string L(string en, string ru)
+        {
+            string lang = _cfgLanguage != null ? _cfgLanguage.Value : "Auto";
+            if (lang == "Russian") return ru;
+            if (lang == "English") return en;
+            try
+            {
+                Localization loc = Localization.instance;
+                return loc != null && loc.GetSelectedLanguage() == "Russian" ? ru : en;
+            }
+            catch { return en; }
+        }
 
         private ConfigEntry<float> _cfgGlobalCooldown;
         private ConfigEntry<float> _cfgBossFactor;
@@ -30,6 +45,9 @@ namespace WeaponArts
             _cfgKey = Config.Bind("01 General", "AbilityKey", new KeyboardShortcut(KeyCode.C),
                 "Key that triggers the art of the currently equipped weapon.");
             _cfgShowHud = Config.Bind("01 General", "ShowHud", true, "Show the current art and its state at the bottom of the screen.");
+            _cfgLanguage = Config.Bind("01 General", "Language", "Auto",
+                new ConfigDescription("Language of the HUD, messages and proxy chat lines. Auto = the game's language (Russian if the game is in Russian, else English). Local, never taken from the server.",
+                    new AcceptableValueList<string>("Auto", "English", "Russian")));
 
             _cfgGlobalCooldown = Config.Bind("02 Balance", "GlobalCooldown", 30f,
                 new ConfigDescription("Seconds after any activation during which no art can fire (stops weapon-swap spam). Shown in the HUD and on weapon swap.", new AcceptableValueRange<float>(0f, 120f)));

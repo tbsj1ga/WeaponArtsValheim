@@ -138,10 +138,10 @@ namespace WeaponArts
         private void ActivateTaunt(Player p)
         {
             float now = Time.time;
-            if (now < _gcdUntil) { Message(p, "Общий КД: " + Mathf.CeilToInt(_gcdUntil - now) + "с"); return; }
-            if (now < _tauntCdUntil) { Message(p, "Таунт: КД " + Mathf.CeilToInt(_tauntCdUntil - now) + "с"); return; }
+            if (now < _gcdUntil) { Message(p, L("Global cooldown: ", "Общий КД: ") + Mathf.CeilToInt(_gcdUntil - now) + L("s", "с")); return; }
+            if (now < _tauntCdUntil) { Message(p, L("Taunt: cooldown ", "Таунт: КД ") + Mathf.CeilToInt(_tauntCdUntil - now) + L("s", "с")); return; }
             float cost = _cfgTauntStamina.Value;
-            if (cost > 0f && !p.HaveStamina(cost)) { Message(p, "Таунт: не хватает стамины"); return; }
+            if (cost > 0f && !p.HaveStamina(cost)) { Message(p, L("Taunt: not enough stamina", "Таунт: не хватает стамины")); return; }
             if (cost > 0f) p.UseStamina(cost);
 
             // scaling: shield block power (tier) + Blocking skill
@@ -160,7 +160,7 @@ namespace WeaponArts
             _tauntCount = ApplyTauntHold(p, _tauntUntil, Sv(_cfgTauntRadius), _tauntSinceMs);
             if (_tauntCount > 0) p.RaiseSkill(Skills.SkillType.Blocking, Mathf.Min(_cfgTauntSkillCap.Value, _cfgTauntSkillGain.Value * _tauntCount));
             try { PlayActivationEffects(p, b != null && b.m_shared != null ? b.m_shared.m_blockEffect : null); } catch (Exception e) { Fail("effects", e); }
-            Message(p, "Таунт! (" + _tauntCount + ")");
+            Message(p, L("Taunt! (", "Таунт! (") + _tauntCount + ")");
             Debug("Taunt: pulled " + _tauntCount + ", reduction " + FormatTime(_tauntReduction) + ", shield " + FormatTime(shieldNorm));
         }
 

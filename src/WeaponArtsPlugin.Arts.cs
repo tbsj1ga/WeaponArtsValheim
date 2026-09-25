@@ -17,8 +17,11 @@ namespace WeaponArts
         {
             public string Id;
             public int Hash;
-            public string Name;
-            public string Desc;
+            public string NameRu, DescRu;       // Russian (as registered)
+            public string NameEn, DescEn;       // English (.En)
+            public string Name { get { return L(NameEn ?? NameRu, NameRu); } }
+            public string Desc { get { return L(DescEn ?? DescRu, DescRu); } }
+            public Art En(string name, string desc) { NameEn = name; DescEn = desc; return this; }
             public ArtKind Kind;
             public Skills.SkillType Skill;
             public int Hand;            // 0 = any, 1 = one-handed, 2 = two-handed
@@ -41,7 +44,7 @@ namespace WeaponArts
                         float mag, float win, float cd, float cost, bool eitr)
         {
             Art a = new Art();
-            a.Id = id; a.Hash = id.GetStableHashCode(); a.Name = name; a.Desc = desc;
+            a.Id = id; a.Hash = id.GetStableHashCode(); a.NameRu = name; a.DescRu = desc;
             a.Kind = kind; a.Skill = skill; a.Hand = hand; a.UsesEitr = eitr;
             string s = "03 Arts - " + id;
             a.Mag = Config.Bind(s, "Magnitude", mag, "Base strength at skill 0 with the weakest weapon (grows with TierPowerBonus/SkillPowerBonus). Damage arts: multiplier; DoT: poison/bleed per hit; lifesteal: fraction; pierce: fraction of resistance ignored; expose: extra damage taken by the target; stagger: unused (every hit staggers).");
@@ -59,12 +62,12 @@ namespace WeaponArts
         }
 
         // AoE heal: rolls random(lo, hi) once; the window [lo0..lo1],[hi0..hi1] grows with
-        // weapon tier + skill (see TASK-weapon-arts.md §5.1). Not a timed window.
+        // weapon tier + skill. Not a timed window.
         private Art AddHeal(string id, string name, string desc, Skills.SkillType skill, int hand,
                             float cd, float cost, float lo0, float lo1, float hi0, float hi1, float radius, bool self)
         {
             Art a = new Art();
-            a.Id = id; a.Hash = id.GetStableHashCode(); a.Name = name; a.Desc = desc;
+            a.Id = id; a.Hash = id.GetStableHashCode(); a.NameRu = name; a.DescRu = desc;
             a.Kind = ArtKind.AoEHeal; a.Skill = skill; a.Hand = hand; a.IncludeSelf = self;
             string s = "03 Arts - " + id;
             a.Cd = Config.Bind(s, "Cooldown", cd, new ConfigDescription("Seconds before reuse.", new AcceptableValueRange<float>(1f, 600f)));
@@ -83,7 +86,7 @@ namespace WeaponArts
                              float mag, float cd, float cost, float radius)
         {
             Art a = new Art();
-            a.Id = id; a.Hash = id.GetStableHashCode(); a.Name = name; a.Desc = desc;
+            a.Id = id; a.Hash = id.GetStableHashCode(); a.NameRu = name; a.DescRu = desc;
             a.Kind = ArtKind.AoEBurst; a.Skill = skill; a.Hand = hand;
             string s = "03 Arts - " + id;
             a.Mag = Config.Bind(s, "Magnitude", mag, "Damage as a fraction of weapon damage (1.3 = 130%).");
@@ -100,32 +103,32 @@ namespace WeaponArts
                 Po = Skills.SkillType.Polearms, Kn = Skills.SkillType.Knives, Un = Skills.SkillType.Unarmed,
                 Bo = Skills.SkillType.Bows, Cr = Skills.SkillType.Crossbows;
 
-            // Phase 1: on-target combat arts (applied on the owner of the struck creature).
-            Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.525f, 6f, 43f, 30f, false);
-            Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.3f, 6f, 48f, 25f, false);
-            Add("Berserk", "Берсерк", "боевой топор: меньше урона по себе + реген HP", ArtKind.Berserk, Ax, 2, 0.375f, 10f, 54f, 30f, false);
-            Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 12f, 6f, 32f, 25f, false);
+            // On-target combat arts (applied on the owner of the struck creature).
+            Add("Onslaught", "Натиск", "меч 2H: +урон по цели", ArtKind.DamageMult, Sw, 2, 1.525f, 6f, 43f, 30f, false).En("Onslaught", "2H sword: more damage to the target");
+            Add("Bloodthirst", "Кровожадность", "меч 1H: вампиризм с урона", ArtKind.Vampirism, Sw, 1, 0.3f, 6f, 48f, 25f, false).En("Bloodthirst", "1H sword: lifesteal from damage dealt");
+            Add("Berserk", "Берсерк", "боевой топор: меньше урона по себе + реген HP", ArtKind.Berserk, Ax, 2, 0.375f, 10f, 54f, 30f, false).En("Berserk", "battleaxe: take less damage + regenerate HP");
+            Add("Bleed", "Кровотечение", "топор 1H: физический DoT (обходит броню)", ArtKind.Bleed, Ax, 1, 12f, 6f, 32f, 25f, false).En("Bleed", "1H axe: physical damage over time");
             // Creatures have no body armor in Valheim (Character.GetBodyArmor is 0), so the pierce
             // arts ignore RESISTANCES instead, plus a flat bonus; the spear exposes the target.
-            Add("Rend", "Рассечение", "копьё: цель уязвима (+урон от всех)", ArtKind.Expose, Sp, 1, 0.3f, 6f, 38f, 30f, false);
-            Add("Impale", "Пронзание", "пика: сильный игнор сопротивлений + урон", ArtKind.Pierce, Sp, 2, 0.95f, 6f, 48f, 30f, false);
-            Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 6f, 48f, 30f, false);
-            Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 6f, 32f, 25f, false);
+            Add("Rend", "Рассечение", "копьё: цель уязвима (+урон от всех)", ArtKind.Expose, Sp, 1, 0.3f, 6f, 38f, 30f, false).En("Rend", "spear: the target is exposed (more damage from everyone)");
+            Add("Impale", "Пронзание", "пика: сильный игнор сопротивлений + урон", ArtKind.Pierce, Sp, 2, 0.95f, 6f, 48f, 30f, false).En("Impale", "pike: strong resistance ignore + damage");
+            Add("Crushing", "Дробящий", "атгейр: каждый удар вгоняет в стаггер", ArtKind.Stagger, Po, 0, 1f, 6f, 48f, 30f, false).En("Crushing", "atgeir: every hit staggers");
+            Add("Envenom", "Отравление", "ножи: сильный яд на ударах", ArtKind.Dot, Kn, 0, 18f, 6f, 32f, 25f, false).En("Envenom", "knives: strong poison on hits");
             // crits apply to every hit/shot in the window, sneak hits included (stack with the sneak bonus)
-            Add("Fury", "Ярость", "кулаки: крит на каждом ударе", ArtKind.DamageMult, Un, 0, 2f, 6f, 43f, 25f, false);
-            Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 2.5f, 22.5f, 48f, 20f, false);
-            Art bolts = Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят сопротивления + урон", ArtKind.Pierce, Cr, 0, 0.9f, 22.5f, 48f, 20f, false);
+            Add("Fury", "Ярость", "кулаки: крит на каждом ударе", ArtKind.DamageMult, Un, 0, 2f, 6f, 43f, 25f, false).En("Fury", "fists: a critical hit on every blow");
+            Art focus = Add("Focus", "Фокус", "лук: следующие выстрелы критуют", ArtKind.DamageMult, Bo, 0, 2.5f, 22.5f, 48f, 20f, false).En("Focus", "bow: the next shots are critical");
+            Art bolts = Add("PiercingBolts", "Бронебой", "арбалет: болты игнорят сопротивления + урон", ArtKind.Pierce, Cr, 0, 0.9f, 22.5f, 48f, 20f, false).En("Piercing Bolts", "crossbow: bolts ignore resistances + damage");
             focus.Shots = Config.Bind("03 Arts - Focus", "Shots", 3, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
             bolts.Shots = Config.Bind("03 Arts - PiercingBolts", "Shots", 3, new ConfigDescription("The art lasts this many shots (Window is the time cap).", new AcceptableValueRange<int>(1, 10)));
 
-            // Phase 2: heals, AoE burst, eitr surge.
+            // Heals and the eitr surge.
             Skills.SkillType Cl = Skills.SkillType.Clubs, El = Skills.SkillType.ElementalMagic, Bl = Skills.SkillType.BloodMagic;
-            AddHeal("Rally", "Клич", "кувалда 2H: хил себе и союзникам", Cl, 2, 60f, 40f, 15f, 60f, 25f, 100f, 10f, true);
-            AddHeal("Mend", "Исцеление", "булава 1H: хил только союзникам", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 8f, false).Heal1H = true;
-            Add("EitrSurgeElem", "Вспышка эйтра", "посох стихий: +магический урон", ArtKind.DamageMult, El, 0, 1.6f, 6f, 60f, 30f, true);
-            Add("EitrSurgeBlood", "Вспышка эйтра", "посох крови: +магический урон", ArtKind.DamageMult, Bl, 0, 1.6f, 6f, 60f, 30f, true);
-            // Whirlwind (кистень): flail skillType не подтверждён (в ваниле может совпасть с
-            // Clubs 2H и конфликтовать с Rally) — регистрируется после проверки в игре.
+            AddHeal("Rally", "Клич", "кувалда 2H: хил себе и союзникам", Cl, 2, 60f, 40f, 15f, 60f, 25f, 100f, 10f, true).En("Rally", "2H sledge: heal yourself and allies");
+            AddHeal("Mend", "Исцеление", "булава 1H: хил только союзникам", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 8f, false).En("Mend", "1H mace: heal allies only").Heal1H = true;
+            Add("EitrSurgeElem", "Вспышка эйтра", "посох стихий: +магический урон", ArtKind.DamageMult, El, 0, 1.6f, 6f, 60f, 30f, true).En("Eitr Surge", "elemental staff: more magic damage");
+            Add("EitrSurgeBlood", "Вспышка эйтра", "посох крови: +магический урон", ArtKind.DamageMult, Bl, 0, 1.6f, 6f, 60f, 30f, true).En("Eitr Surge", "blood staff: more magic damage");
+            // Whirlwind (flail) is not registered yet: the flail skill type still has to be
+            // confirmed in game (it may coincide with Clubs 2H and clash with Rally).
         }
 
         // ------------------------------------------------------------------
@@ -202,21 +205,21 @@ namespace WeaponArts
             if (TauntShieldEquipped(p)) { ActivateTaunt(p); return; }   // tower shield wins over the 1H art
             ItemDrop.ItemData weapon = p.GetCurrentWeapon();
             Art a = ArtFor(weapon);
-            if (a == null) { Message(p, "Нет активки для этого оружия"); return; }
+            if (a == null) { Message(p, L("No art for this weapon", "Нет активки для этого оружия")); return; }
 
             float now = Time.time;
-            if (now < _gcdUntil) { Message(p, "Общий КД: " + Mathf.CeilToInt(_gcdUntil - now) + "с"); return; }
+            if (now < _gcdUntil) { Message(p, L("Global cooldown: ", "Общий КД: ") + Mathf.CeilToInt(_gcdUntil - now) + L("s", "с")); return; }
             float cdUntil;
             if (_cooldownUntil.TryGetValue(a.Id, out cdUntil) && now < cdUntil)
             {
-                Message(p, a.Name + ": КД " + Mathf.CeilToInt(cdUntil - now) + "с");
+                Message(p, a.Name + L(": cooldown ", ": КД ") + Mathf.CeilToInt(cdUntil - now) + L("s", "с"));
                 return;
             }
             float cost = a.Cost.Value;
             if (cost > 0f)
             {
                 bool ok = a.UsesEitr ? p.HaveEitr(cost) : p.HaveStamina(cost);
-                if (!ok) { Message(p, a.Name + ": не хватает " + (a.UsesEitr ? "эйтра" : "стамины")); return; }
+                if (!ok) { Message(p, a.Name + (a.UsesEitr ? L(": not enough eitr", ": не хватает эйтра") : L(": not enough stamina", ": не хватает стамины"))); return; }
             }
 
             // scaling: tier from weapon damage, skill from the weapon's skill
@@ -262,9 +265,9 @@ namespace WeaponArts
                 if (a.Shots != null)
                 {
                     _shotsLeft[a.Id] = Mathf.Max(1, a.Shots.Value);
-                    info = a.Name + "! " + _shotsLeft[a.Id] + " выстр. (до " + FormatTime(window) + "с)";
+                    info = a.Name + "! " + _shotsLeft[a.Id] + L(" shots (up to ", " выстр. (до ") + FormatTime(window) + L("s)", "с)");
                 }
-                else info = a.Name + "! " + FormatTime(window) + "с";
+                else info = a.Name + "! " + FormatTime(window) + L("s", "с");
                 Debug("Activated " + a.Id + ": power " + power.ToString("0.00") + ", window " + FormatTime(window) + "s");
             }
 

@@ -9,8 +9,7 @@ using UnityEngine;
 namespace WeaponArts
 {
     // Active abilities ("arts") keyed to the equipped weapon. One key; the art is chosen by what
-    // is in your hands. Phase 1: the on-target combat arts run through the OWNER of the struck
-    // creature, exactly like BossMeter/ShieldTaunt established:
+    // is in your hands. The on-target combat arts run through the OWNER of the struck creature:
     //
     //   * On activation the acting player bakes the art (id, expiry on server time, and the
     //     already skill/tier-scaled power) into its own player ZDO.
@@ -20,14 +19,14 @@ namespace WeaponArts
     //
     // This one path works for a modded attacker whoever owns the target. Effects only ever touch
     // creatures, never players (PvP-safe); bosses take a reduced factor and are naturally immune
-    // to stagger. Heals/AoE/taunt/eitr-surge, the proxy for modless actors, host config sync and
-    // the config window are later phases (see TASK-weapon-arts.md).
+    // to stagger. Heals, berserk and the tower-shield taunt act on the player; a modded client
+    // near a player without the mod can act for them (proxy); the host syncs the balance.
     [BepInPlugin(Guid, Name, Version)]
     public partial class WeaponArtsPlugin : BaseUnityPlugin
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.13.3";
+        public const string Version = "0.14.0";
 
         public static WeaponArtsPlugin Instance;
 
@@ -158,7 +157,7 @@ namespace WeaponArts
             string loadout = (w != null && w.m_shared != null ? w.m_shared.m_name : "") + (TauntShieldEquipped(p) ? "+shield" : "");
             if (loadout == _lastLoadout) return;
             _lastLoadout = loadout;
-            if (now < _gcdUntil) Message(p, "Общий КД: " + Mathf.CeilToInt(_gcdUntil - now) + "с");
+            if (now < _gcdUntil) Message(p, L("Global cooldown: ", "Общий КД: ") + Mathf.CeilToInt(_gcdUntil - now) + L("s", "с"));
         }
 
         internal float GcdLeft() { return _gcdUntil - Time.time; }

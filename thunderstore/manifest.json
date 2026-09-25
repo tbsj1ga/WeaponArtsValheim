@@ -2,7 +2,7 @@
   "name": "WeaponArts",
   "version_number": "0.0.0",
   "website_url": "https://github.com/TBSjiga/WeaponArts",
-  "description": "Active weapon abilities keyed to the equipped weapon: burst, bleed, poison, stagger, crit, armor pierce, lifesteal, heals and the tower-shield taunt. Works with players who have no mods.",
+  "description": "Active abilities keyed to the weapon in your hands: crits, bleed, poison, stagger, lifesteal, exposed targets, berserk, group heals and a tower-shield taunt. Players without the mod see the effects and get healed.",
   "dependencies": [
     "denikson-BepInExPack_Valheim-5.4.2350"
   ]
