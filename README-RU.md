@@ -104,7 +104,7 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1 -Package   # ... и соб�
 
 ## Репозиторий
 
-Ветка `main` на GitHub: https://github.com/TBSjiga/WeaponArts. Под версионированием:
+Ветка `main` на GitHub: https://github.com/tbsj1ga/WeaponArtsValheim. Под версионированием:
 исходники, `.csproj`, скрипты, документация, заготовка Thunderstore и
 `build\WeaponArts.dll`. Не под ним: конфиг BepInEx, `bin/`, `obj/`, zip-пакеты — см.
 `.gitignore`. Лицензия MIT (`LICENSE`).

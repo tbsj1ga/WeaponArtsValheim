@@ -119,7 +119,7 @@ installed game with Mono.Cecil.
 
 ## Repository
 
-Branch `main` on GitHub: https://github.com/TBSjiga/WeaponArts. Versioned: sources,
+Branch `main` on GitHub: https://github.com/tbsj1ga/WeaponArtsValheim. Versioned: sources,
 `.csproj`, scripts, documentation, the Thunderstore template and `build\WeaponArts.dll`.
 Not versioned: the BepInEx config, `bin/`, `obj/`, zip packages — see `.gitignore`.
 License: MIT (`LICENSE`).

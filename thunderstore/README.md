@@ -35,7 +35,7 @@ Active abilities ("arts") keyed to the weapon in your hands. Press one key (defa
 
 Install on every player who wants the arts and on the host / dedicated server.
 
-Source, full documentation and the changelog: https://github.com/TBSjiga/WeaponArts
+Source, full documentation and the changelog: https://github.com/tbsj1ga/WeaponArtsValheim
 
 *Developed with the help of an AI assistant (Claude by Anthropic); the design
 decisions, verification against the game code and in-game testing are the author's.*
