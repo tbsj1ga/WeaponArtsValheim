@@ -61,6 +61,23 @@
 при входе и при каждом изменении; клиенты пользуются ими, пока подключены. Локальное
 (клавиша, HUD, язык, поведение прокси, КД) остаётся у каждого своё.
 
+## Скриншоты
+
+| | |
+|---|---|
+| ![Дробящий (атгейр): каждый удар — стаггер](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/crushing.webp) | ![Таунт (башенный щит): мобы идут на тебя](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/taunt.webp) |
+| Дробящий (атгейр): каждый удар — стаггер | Таунт (башенный щит): мобы идут на тебя |
+| ![Клич (кувалда): хил себе и союзникам](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/rally.webp) | ![Берсерк (боевой топор): меньше урона, реген HP](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/berserk.webp) |
+| Клич (кувалда): хил себе и союзникам | Берсерк (боевой топор): меньше урона, реген HP |
+
+![Фокус (лук): следующие выстрелы критуют, счётчик в HUD](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/focus.webp)
+
+*Фокус (лук): следующие выстрелы критуют, счётчик в HUD*
+
+![HUD: готова, активна, КД](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/hud-states.png)
+
+*HUD: готова, активна, КД*
+
 ## Совместимость
 
 Проверено на **Valheim 1.0.16** (network version 40), **BepInEx 5.4.23.5** (BepInExPack_Valheim 5.4.2351).
@@ -81,14 +98,6 @@
 ## Ошибки и отзывы
 
 GitHub Issues: https://github.com/tbsj1ga/WeaponArtsValheim/issues — приложите `BepInEx/LogOutput.log`.
-
-## Скриншоты
-
-<!-- Раскомментируйте строку, когда файл лежит в docs/media/ и отправлен на GitHub. -->
-<!-- ![атгейр: каждый удар — стаггер](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/crushing.gif) -->
-<!-- ![хил булавой с зелёными частицами шамана](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/mend.gif) -->
-<!-- ![таунт башенным щитом стягивает мобов](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/taunt.gif) -->
-<!-- ![HUD со способностью и её КД](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/hud.png) -->
 
 ## Установка
 
@@ -137,6 +146,15 @@ powershell -ExecutionPolicy Bypass -File .\build.ps1 -Package   # ... и соб�
 исходники, `.csproj`, скрипты, документация, заготовка Thunderstore и
 `build\WeaponArts.dll`. Не под ним: конфиг BepInEx, `bin/`, `obj/`, zip-пакеты — см.
 `.gitignore`. Лицензия MIT (`LICENSE`).
+
+## Другие моды j1gA
+
+| | Мод |
+|---|---|
+| [![LivingMap](https://raw.githubusercontent.com/tbsj1ga/LivingMapValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/LivingMap/) | **[LivingMap](https://thunderstore.io/c/valheim/p/j1gA/LivingMap/)** — Постройки, дороги и вырубки на карте и мини-карте. |
+| [![StationSpeed](https://raw.githubusercontent.com/tbsj1ga/StationSpeedValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/StationSpeed/) | **[StationSpeed](https://thunderstore.io/c/valheim/p/j1gA/StationSpeed/)** — Ускорение плавилен, печей, бочек и грядок — согласованно даже для игроков без мода. |
+| [![ExtendedBosses](https://raw.githubusercontent.com/tbsj1ga/ExtendedBossesValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/ExtendedBosses/) | **[ExtendedBosses](https://thunderstore.io/c/valheim/p/j1gA/ExtendedBosses/)** — Боссы как рейды: фазы, адды, гнёзда, щиты, метки — из ванильных частей. |
+| [![HostOwner](https://raw.githubusercontent.com/tbsj1ga/HostOwnerValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/HostOwner/) | **[HostOwner](https://thunderstore.io/c/valheim/p/j1gA/HostOwner/)** — Хост забирает владение станциями и боссами рядом, чтобы его моды работали для всех. |
 
 ## Помощь ИИ
 

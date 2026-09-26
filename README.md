@@ -61,6 +61,23 @@ cooldown is ×1.5, and bow/crossbow arts last 10 s instead of counting shots.
 the mod on connect and on every change; clients use them while connected. Local things
 (key, HUD, language, proxy behaviour, cooldowns) stay per client.
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Crushing (atgeir): every hit staggers](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/crushing.webp) | ![Taunt (tower shield): the monsters come to you](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/taunt.webp) |
+| Crushing (atgeir): every hit staggers | Taunt (tower shield): the monsters come to you |
+| ![Rally (sledge): heal yourself and your allies](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/rally.webp) | ![Berserk (battleaxe): less damage taken, HP regenerates](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/berserk.webp) |
+| Rally (sledge): heal yourself and your allies | Berserk (battleaxe): less damage taken, HP regenerates |
+
+![Focus (bow): the next shots are critical, counted in the HUD](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/focus.webp)
+
+*Focus (bow): the next shots are critical, counted in the HUD*
+
+![The HUD: ready, active, cooldown](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/hud-states.png)
+
+*The HUD: ready, active, cooldown*
+
 ## Compatibility
 
 Tested with **Valheim 1.0.16** (network version 40), **BepInEx 5.4.23.5** (BepInExPack_Valheim 5.4.2351).
@@ -81,14 +98,6 @@ Tested with **Valheim 1.0.16** (network version 40), **BepInEx 5.4.23.5** (BepIn
 ## Bugs and feedback
 
 GitHub Issues: https://github.com/tbsj1ga/WeaponArtsValheim/issues — please attach `BepInEx/LogOutput.log`.
-
-## Screenshots
-
-<!-- Uncomment each line once the file is in docs/media/ and pushed. -->
-<!-- ![the atgeir art: every hit staggers](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/crushing.gif) -->
-<!-- ![the mace heal with the shaman's green particles](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/mend.gif) -->
-<!-- ![the tower-shield taunt pulling monsters](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/taunt.gif) -->
-<!-- ![the HUD with the art and its cooldown](https://raw.githubusercontent.com/tbsj1ga/WeaponArtsValheim/main/docs/media/hud.png) -->
 
 ## Installation
 
@@ -152,6 +161,15 @@ Branch `main` on GitHub: https://github.com/tbsj1ga/WeaponArtsValheim. Versioned
 `.csproj`, scripts, documentation, the Thunderstore template and `build\WeaponArts.dll`.
 Not versioned: the BepInEx config, `bin/`, `obj/`, zip packages — see `.gitignore`.
 License: MIT (`LICENSE`).
+
+## More mods by j1gA
+
+| | Mod |
+|---|---|
+| [![LivingMap](https://raw.githubusercontent.com/tbsj1ga/LivingMapValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/LivingMap/) | **[LivingMap](https://thunderstore.io/c/valheim/p/j1gA/LivingMap/)** — Your buildings, roads and cleared forest on the map and the minimap. |
+| [![StationSpeed](https://raw.githubusercontent.com/tbsj1ga/StationSpeedValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/StationSpeed/) | **[StationSpeed](https://thunderstore.io/c/valheim/p/j1gA/StationSpeed/)** — Faster smelters, kilns, fermenters and crops — consistent even for players without the mod. |
+| [![ExtendedBosses](https://raw.githubusercontent.com/tbsj1ga/ExtendedBossesValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/ExtendedBosses/) | **[ExtendedBosses](https://thunderstore.io/c/valheim/p/j1gA/ExtendedBosses/)** — Raid-style boss fights: phases, adds, nests, shields, marks — built from vanilla parts. |
+| [![HostOwner](https://raw.githubusercontent.com/tbsj1ga/HostOwnerValheim/main/docs/media/icon-128.png)](https://thunderstore.io/c/valheim/p/j1gA/HostOwner/) | **[HostOwner](https://thunderstore.io/c/valheim/p/j1gA/HostOwner/)** — The host takes ownership of stations and bosses near it, so its mods work for everyone. |
 
 ## AI assistance
 

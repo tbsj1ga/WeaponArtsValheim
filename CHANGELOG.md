@@ -4,6 +4,11 @@
 
 The version is set in one place — `WeaponArtsPlugin.Version` in `src/WeaponArtsPlugin.cs`.
 
+## 0.14.1
+
+- Package page: a gallery of animations and screenshots, and a section with the author's
+  other mods (icons, one line each, links). No code changes.
+
 ## 0.14.0 — English, publishing prep
 
 - All in-game text (HUD, messages, proxy chat lines, art names and descriptions) in

@@ -1,9 +1,11 @@
 # Media for the README
 
-Put these files here, push, then uncomment the matching lines in `README.md`, `README-RU.md` and `thunderstore/README.md`.
-Keep GIFs 4-8 s, 640-800 px wide, under 5 MB.
+- `icon-128.png` — the icon for the "More mods by j1gA" sections of the other mods
+- `crushing.webp` — Crushing (atgeir): every hit staggers
+- `taunt.webp` — Taunt (tower shield): the monsters come to you
+- `rally.webp` — Rally (sledge): heal yourself and your allies
+- `berserk.webp` — Berserk (battleaxe): less damage taken, HP regenerates
+- `focus.webp` — Focus (bow): the next shots are critical, counted in the HUD
+- `hud-states.png` — The HUD: ready, active, cooldown
 
-- `crushing.gif` — the atgeir art: every hit staggers
-- `mend.gif` — the mace heal with the shaman's green particles
-- `taunt.gif` — the tower-shield taunt pulling monsters
-- `hud.png` — the HUD with the art and its cooldown
+Animations: WebP, 4-8 s, 640-1280 px wide, under 4 MB.
