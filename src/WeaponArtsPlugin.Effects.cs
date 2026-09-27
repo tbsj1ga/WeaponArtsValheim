@@ -20,6 +20,7 @@ namespace WeaponArts
         private ConfigEntry<string> _cfgArtVisual;
         private ConfigEntry<string> _cfgHealVisual;
 
+        private const string ShamanHelp = "ShamanHeal (the greydwarf shaman's heal: green flames around you), ShamanSpray (the greydwarf shaman's green spray, cast forward)";
         private const string VisualHelp = "None; GuardianPower (the forsaken-power activation flash); or a registered prefab name, e.g. fx_eikthyr_stomp, fx_Adrenaline1, fx_guardstone_activate, vfx_perfectblock, fx_gjall_taunt.";
 
         private void BindEffectsConfig()
@@ -27,20 +28,39 @@ namespace WeaponArts
             _cfgTauntSound = Config.Bind("06 Taunt Effects", "Sound", "Perfect",
                 new ConfigDescription("Sound on taunt: Block (the shield's own block effect), Perfect (perfect-block sparks), None.",
                     new AcceptableValueList<string>("Block", "Perfect", "None")));
-            _cfgTauntVisual = Config.Bind("06 Taunt Effects", "Visual", "GuardianPower", "Visual on taunt, attached to the tank. " + VisualHelp);
+            _cfgTauntVisual = Config.Bind("06 Taunt Effects", "Visual", "fx_guardstone_activate", "Visual on taunt, attached to the tank (fx_guardstone_activate = the ward's transparent dome). " + VisualHelp);
 
             _cfgArtSound = Config.Bind("07 Art Effects", "Sound", "Perfect",
                 new ConfigDescription("Sound when a weapon art is activated: Perfect (perfect-block sparks), None.",
                     new AcceptableValueList<string>("Perfect", "None")));
             _cfgArtVisual = Config.Bind("07 Art Effects", "Visual", "GuardianPower", "Visual when a weapon art is activated, attached to you. " + VisualHelp);
-            _cfgHealVisual = Config.Bind("07 Art Effects", "HealVisual", "fx_guardstone_activate", "Visual for Rally (sledge heal) instead of the one above: ShamanHeal (the greydwarf shaman heal, green particles) or " + VisualHelp);
-            _cfgMendVisual = Config.Bind("07 Art Effects", "MendVisual", "ShamanHeal", "Visual for Mend (mace heal): ShamanHeal (the greydwarf shaman heal: green particles around you and on each healed ally), or anything HealVisual takes.");
+            _cfgHealVisual = Config.Bind("07 Art Effects", "HealVisual", "ShamanHeal", "Visual for Rally (sledge heal) instead of the one above: " + ShamanHelp + " or " + VisualHelp);
+            _cfgMendVisual = Config.Bind("07 Art Effects", "MendVisual", "ShamanSpray", "Visual for Mend (mace heal): " + ShamanHelp + " or anything HealVisual takes.");
+            _cfgAllyHealVisual = Config.Bind("07 Art Effects", "AllyHealVisual", true, "With ShamanHeal or ShamanSpray: every healed ally also gets the shaman's green heal flames, so everyone sees who was healed.");
             _cfgMendAnimation = Config.Bind("07 Art Effects", "MendAnimation", "StaffShield", "Player animation for Mend: the attack animation of this item prefab (StaffShield = the staff-of-protection cast), a raw animator trigger name, or None.");
+        }
+
+        // Once per config file, after every entry is bound: values still at an old default move
+        // to the new one; anything the user picked is kept. 1 -> 2: taunt GuardianPower -> the
+        // ward dome, Rally fx_guardstone_activate -> ShamanHeal, Mend ShamanHeal (heal + spray)
+        // -> ShamanSpray, Mend radius 8 -> 12 m (it became a forward cone).
+        private void MigrateConfig()
+        {
+            ConfigEntry<int> ver = Config.Bind("01 General", "ConfigVersion", 1,
+                "Internal: which defaults this file has been updated to. Do not edit.");
+            if (ver.Value >= 2) return;
+            if (_cfgTauntVisual.Value == "GuardianPower") _cfgTauntVisual.Value = "fx_guardstone_activate";
+            if (_cfgHealVisual.Value == "fx_guardstone_activate") _cfgHealVisual.Value = "ShamanHeal";
+            if (_cfgMendVisual.Value == "ShamanHeal") _cfgMendVisual.Value = "ShamanSpray";
+            foreach (Art a in _arts)
+                if (a.Id == "Mend" && Mathf.Approximately(a.Radius.Value, 8f)) a.Radius.Value = 12f;
+            ver.Value = 2;
         }
 
         private ConfigEntry<string> _cfgMendVisual;
         private ConfigEntry<string> _cfgMendAnimation;
-        private EffectList _shamanCast, _shamanHit;
+        private ConfigEntry<bool> _cfgAllyHealVisual;
+        private EffectList _shamanCast, _shamanSpray, _shamanHit;
         private GameObject _shamanAoe;
         private bool _shamanResolved;
 
@@ -82,12 +102,19 @@ namespace WeaponArts
                 if (_shamanHit == null && aoe.m_hitEffects != null && aoe.m_hitEffects.HasEffects()) _shamanHit = aoe.m_hitEffects;
             }
             else _shamanAoe = null;
-            // the praying glow and the heal sound, if registered
-            AddPrefab(cast, "vfx_greydwarf_shaman_pray");
+            // the heal sound, if registered
             AddPrefab(cast, "sfx_greydwarf_shaman_heal");
             _shamanCast = new EffectList();
             _shamanCast.m_effectPrefabs = cast.ToArray();
-            Debug("Shaman heal visual: aoe " + (_shamanAoe != null ? _shamanAoe.name : "none") + ", " + cast.Count + " cast effects, hit " + (_shamanHit != null));
+            // ShamanSpray: the start effect of the shaman's attack (the green spray, attached and
+            // facing forward) with the heal sound - not a heal visual, so kept apart from ShamanHeal
+            List<EffectList.EffectData> spray = new List<EffectList.EffectData>();
+            AddPrefab(spray, "vfx_greydwarf_shaman_pray");
+            AddPrefab(spray, "sfx_greydwarf_shaman_heal");
+            foreach (EffectList.EffectData e in spray) e.m_inheritParentRotation = true;
+            _shamanSpray = new EffectList();
+            _shamanSpray.m_effectPrefabs = spray.ToArray();
+            Debug("Shaman visuals: aoe " + (_shamanAoe != null ? _shamanAoe.name : "none") + ", " + cast.Count + " heal cast effects, " + spray.Count + " spray effects, hit " + (_shamanHit != null));
             if (_shamanAoe == null && cast.Count == 0) Logger.LogWarning("Shaman heal visual not found; heals use HealVisual.");
         }
 
@@ -108,14 +135,20 @@ namespace WeaponArts
             to.Add(data);
         }
 
-        // ShamanHeal for this heal art: Mend reads MendVisual, Rally reads HealVisual.
-        private bool UseShaman(Art a)
+        private enum ShamanVisual { None, Heal, Spray }
+
+        // The shaman visual for this heal art: Mend reads MendVisual, Rally reads HealVisual.
+        private ShamanVisual ShamanOf(Art a)
         {
-            if (a == null || a.Kind != ArtKind.AoEHeal) return false;
+            if (a == null || a.Kind != ArtKind.AoEHeal) return ShamanVisual.None;
             string v = ((a.Heal1H ? _cfgMendVisual.Value : _cfgHealVisual.Value) ?? "").Trim();
-            if (!v.Equals("ShamanHeal", StringComparison.OrdinalIgnoreCase)) return false;
+            ShamanVisual kind = v.Equals("ShamanHeal", StringComparison.OrdinalIgnoreCase) ? ShamanVisual.Heal
+                : v.Equals("ShamanSpray", StringComparison.OrdinalIgnoreCase) ? ShamanVisual.Spray : ShamanVisual.None;
+            if (kind == ShamanVisual.None) return kind;
             ResolveShaman();
-            return _shamanAoe != null || (_shamanCast != null && _shamanCast.HasEffects());
+            if (kind == ShamanVisual.Heal && _shamanAoe == null && (_shamanCast == null || !_shamanCast.HasEffects())) return ShamanVisual.None;
+            if (kind == ShamanVisual.Spray && (_shamanSpray == null || !_shamanSpray.HasEffects())) return ShamanVisual.None;
+            return kind;
         }
 
         // The shaman's AoE object as a pure visual: spawned networked (everyone sees the green
@@ -147,11 +180,15 @@ namespace WeaponArts
             }
         }
 
-        // The shaman's heal effect on a healed ally.
-        private void PlayHealHit(Art a, Character target)
+        // A healed ally gets the shaman's green heal flames at their feet, so they see they were
+        // healed. The shaman's own hit effect and heal status effect carry no visual, so the
+        // flames are the inert shaman_heal_aoe, as on the caster. The caster has its own effect.
+        private void PlayHealHit(Art a, Character target, Character caster)
         {
-            if (target == null || !UseShaman(a) || _shamanHit == null) return;
-            Play(_shamanHit, target.GetCenterPoint(), target.transform.rotation, target.transform, target.GetZDOID());
+            if (target == null || target == caster || !_cfgAllyHealVisual.Value) return;
+            if (ShamanOf(a) == ShamanVisual.None) return;
+            if (_shamanHit != null) Play(_shamanHit, target.GetCenterPoint(), target.transform.rotation, target.transform, target.GetZDOID());
+            else SpawnShamanAoe(target.transform.position, target.transform.rotation);
         }
 
         // Mend: a cast animation on the local player (synced by ZSyncAnimation to everyone).
@@ -178,11 +215,17 @@ namespace WeaponArts
         private void PlayArtEffects(Humanoid actor, Art a)
         {
             if (a == null) return;
-            if (UseShaman(a))
+            ShamanVisual shaman = ShamanOf(a);
+            if (shaman != ShamanVisual.None)
             {
                 PlayEffects(actor, _cfgArtSound.Value, "None", null);
-                Play(_shamanCast, actor.GetCenterPoint(), actor.transform.rotation, actor.transform, actor.GetZDOID());
-                SpawnShamanAoe(actor.transform.position, actor.transform.rotation);
+                if (shaman == ShamanVisual.Spray)
+                    Play(_shamanSpray, actor.GetCenterPoint(), actor.transform.rotation, actor.transform, actor.GetZDOID());
+                else
+                {
+                    Play(_shamanCast, actor.GetCenterPoint(), actor.transform.rotation, actor.transform, actor.GetZDOID());
+                    SpawnShamanAoe(actor.transform.position, actor.transform.rotation);
+                }
                 PlayMendAnimation(actor, a);
                 return;
             }

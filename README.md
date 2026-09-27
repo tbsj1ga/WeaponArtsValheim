@@ -30,7 +30,7 @@ activation starts a 30 s global cooldown (against weapon-swap chains).
 | Bow | Focus | the next shots are critical | ×2.5, 3 shots | ≤ 22.5 s | 48 s |
 | Crossbow | Piercing Bolts | bolts ignore resistances + damage | 90%, +22.5%, 3 shots | ≤ 22.5 s | 48 s |
 | 2H sledge | Rally | heal yourself and allies, 10 m | 15–25 → 60–100 HP | — | 60 s |
-| 1H mace | Mend | heal allies only, 8 m | 10–16 → 40–65 HP | — | 50 s |
+| 1H mace | Mend | heal the allies in front of you: a 90° cone, 12 m | 10–16 → 40–65 HP | — | 50 s |
 | Staves | Eitr Surge | more magic damage (costs eitr) | ×1.6 | 6 s | 60 s |
 | Tower shield | Taunt | pull monsters within 15 m onto you + damage reduction | −37.5…−67.5% | 6 s | 48 s |
 
@@ -116,7 +116,7 @@ host / dedicated server so the balance is shared. Players without the mod join a
 | 03 Arts - \<id\> | per art: `Magnitude`, `Window`, `Cooldown`, `Cost`, plus `Shots`, `DamageBonus`, `ExposeSeconds`, `RegenPerSecond` or the heal ranges where they apply |
 | 04 Taunt | shield mode, radius, duration, cooldown, damage reduction, bosses/tamed, straight charge, Blocking skill gain |
 | 05 Bleed | bleed duration and tick interval |
-| 06 Taunt Effects / 07 Art Effects | sound and visual on activation; `HealVisual`, `MendVisual` (`ShamanHeal` = the greydwarf shaman's green heal), `MendAnimation` |
+| 06 Taunt Effects / 07 Art Effects | sound and visual on activation; `HealVisual`, `MendVisual` (`ShamanHeal` = the greydwarf shaman's green heal, `ShamanSpray` = its green spray), `AllyHealVisual`, `MendAnimation` |
 | 08 HUD | position and font size |
 | 09 Proxy | acting for players without the mod (off by default) |
 | 10 Sync | the server hands its settings to clients |

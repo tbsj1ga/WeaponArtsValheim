@@ -34,7 +34,7 @@ Active abilities ("arts") keyed to the weapon in your hands. Press one key (defa
 | Bow | Focus | the next shots are critical |
 | Crossbow | Piercing Bolts | bolts ignore resistances + extra damage |
 | 2H sledge | Rally | heal yourself and allies around |
-| 1H mace | Mend | heal allies around (the greydwarf shaman's green heal) |
+| 1H mace | Mend | heal the allies in front of you (the greydwarf shaman's green spray) |
 | Staves | Eitr Surge | more magic damage |
 | Tower shield | Taunt | pull the monsters around onto you and take less damage |
 

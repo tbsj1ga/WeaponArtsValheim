@@ -4,6 +4,24 @@
 
 The version is set in one place — `WeaponArtsPlugin.Version` in `src/WeaponArtsPlugin.cs`.
 
+## 0.14.2 — Separate shaman visuals
+
+- ShamanHeal used to play two things at once: the shaman's heal (green flames around you)
+  and the start effect of the shaman's attack (a green spray cast forward). They are now
+  two visuals: ShamanHeal is only the heal, ShamanSpray only the spray.
+- New defaults: Rally (sledge) — ShamanHeal; Mend (mace) — ShamanSpray, still with the
+  staff cast animation; taunt — the ward's transparent dome (fx_guardstone_activate)
+  instead of the red forsaken-power flash.
+- Healed allies get the shaman's green heal flames at their feet (07 Art Effects >
+  AllyHealVisual, on by default): before, only the caster showed an effect.
+- Mend (mace) is cast forward, like its spray: it heals the allies in a 90° cone up to
+  12 m in front of you (was 8 m all around); allies within 2 m count from any side. On
+  activation the character turns to the camera, so the cone and the spray go where you
+  look.
+  03 Arts - Mend > Angle (360 = all around, as before), Radius.
+- An existing config is updated once (01 General > ConfigVersion): only values
+  still at the old defaults change, your own choices are kept.
+
 ## 0.14.1
 
 - Package page: a gallery of animations and screenshots, and a section with the author's

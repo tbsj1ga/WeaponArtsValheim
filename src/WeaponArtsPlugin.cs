@@ -26,7 +26,7 @@ namespace WeaponArts
     {
         public const string Guid = "j1ga.weaponarts";
         public const string Name = "Weapon Arts";
-        public const string Version = "0.14.1";
+        public const string Version = "0.14.2";
 
         public static WeaponArtsPlugin Instance;
 
@@ -62,6 +62,7 @@ namespace WeaponArts
                 BindHudConfig();
                 BindReflection();
                 BuildArts();
+                MigrateConfig();
                 RegisterCommands();
                 _harmony = new Harmony(Guid);
                 _harmony.PatchAll(typeof(WeaponArtsPlugin).Assembly);

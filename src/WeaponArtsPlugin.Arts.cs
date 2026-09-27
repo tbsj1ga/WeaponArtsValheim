@@ -30,6 +30,7 @@ namespace WeaponArts
             // instant arts (AoEHeal / AoEBurst)
             public ConfigEntry<float> Radius, HLo0, HLo1, HHi0, HHi1;
             public bool IncludeSelf;
+            public ConfigEntry<float> Angle;    // Mend: width of the forward cone, degrees (360 = all around)
             public ConfigEntry<float> Bonus;    // Pierce: flat damage bonus on top of the resist ignore
             public ConfigEntry<float> Linger;   // Expose: seconds the mark stays on the target
             public ConfigEntry<int> Shots;      // ranged: the art lasts this many shots (Window caps it)
@@ -124,7 +125,11 @@ namespace WeaponArts
             // Heals and the eitr surge.
             Skills.SkillType Cl = Skills.SkillType.Clubs, El = Skills.SkillType.ElementalMagic, Bl = Skills.SkillType.BloodMagic;
             AddHeal("Rally", "Клич", "кувалда 2H: хил себе и союзникам", Cl, 2, 60f, 40f, 15f, 60f, 25f, 100f, 10f, true).En("Rally", "2H sledge: heal yourself and allies");
-            AddHeal("Mend", "Исцеление", "булава 1H: хил только союзникам", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 8f, false).En("Mend", "1H mace: heal allies only").Heal1H = true;
+            Art mend = AddHeal("Mend", "Исцеление", "булава 1H: хил союзникам перед собой", Cl, 1, 50f, 30f, 10f, 40f, 16f, 65f, 12f, false).En("Mend", "1H mace: heal the allies in front of you");
+            mend.Heal1H = true;
+            mend.Angle = Config.Bind("03 Arts - Mend", "Angle", 90f, new ConfigDescription(
+                "Width of the cone the heal reaches, degrees (Radius is its length); on activation you turn to the camera, so it points where you look. Allies within " + ConeCloseRange + " m count from any side. 360 = all around.",
+                new AcceptableValueRange<float>(30f, 360f)));
             Add("EitrSurgeElem", "Вспышка эйтра", "посох стихий: +магический урон", ArtKind.DamageMult, El, 0, 1.6f, 6f, 60f, 30f, true).En("Eitr Surge", "elemental staff: more magic damage");
             Add("EitrSurgeBlood", "Вспышка эйтра", "посох крови: +магический урон", ArtKind.DamageMult, Bl, 0, 1.6f, 6f, 60f, 30f, true).En("Eitr Surge", "blood staff: more magic damage");
             // Whirlwind (flail) is not registered yet: the flail skill type still has to be
@@ -230,6 +235,10 @@ namespace WeaponArts
 
             if (cost > 0f) { if (a.UsesEitr) p.UseEitr(cost); else p.UseStamina(cost); }
 
+            // a forward art (Mend) turns us to the camera first, the way the game does for an
+            // attack, so the cone and the spray go where we look; the rotation syncs as usual
+            if (a.Angle != null && Sv(a.Angle) < 360f) p.FaceLookDirection();
+
             string info;
             if (a.Kind == ArtKind.AoEHeal)
             {
@@ -298,12 +307,30 @@ namespace WeaponArts
                 if (q == null || q.IsDead()) continue;
                 if (q == p && !a.IncludeSelf) continue;
                 if ((q.transform.position - me).sqrMagnitude > r2) continue;
+                if (!InCone(p, a, q)) continue;
                 HealChar(q, amount);
-                try { PlayHealHit(a, q); } catch (Exception e) { Fail("heal hit fx", e); }
+                try { PlayHealHit(a, q, p); } catch (Exception e) { Fail("heal hit fx", e); }
                 n++;
             }
             Debug(a.Id + ": heal " + FormatTime(amount) + " to " + n + " (roll " + FormatTime(lo) + "-" + FormatTime(hi) + ")");
             return n;
+        }
+
+        // Allies this close are healed from any side: a friend at your shoulder is not "behind".
+        private const float ConeCloseRange = 2f;
+
+        // Mend is cast forward like the shaman's spray: only allies inside the horizontal cone
+        // around the caster's facing (turned to the camera on activation; a modless player
+        // served by the proxy keeps their own facing). No Angle (Rally) or 360: all around.
+        private bool InCone(Player p, Art a, Player q)
+        {
+            if (a.Angle == null) return true;
+            float angle = Sv(a.Angle);
+            if (angle >= 360f) return true;
+            Vector3 d = q.transform.position - p.transform.position; d.y = 0f;
+            if (d.sqrMagnitude <= ConeCloseRange * ConeCloseRange) return true;
+            Vector3 f = p.transform.forward; f.y = 0f;
+            return Vector3.Angle(f, d) <= angle * 0.5f;
         }
 
         private static void HealChar(Character c, float amt)
