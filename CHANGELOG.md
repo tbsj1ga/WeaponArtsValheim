@@ -4,6 +4,13 @@
 
 The version is set in one place — `WeaponArtsPlugin.Version` in `src/WeaponArtsPlugin.cs`.
 
+## 0.15.0 — The HUD label is part of the game's HUD
+
+- The art label (name, state, description) is now a uGUI object in the game's HUD
+  (`hudroot/WeaponArts`) instead of IMGUI: it hides with the HUD (Ctrl+F3), scales with the
+  UI and uses the game's font. HUD mods can move it — HudLayout picks it up by itself.
+- `08 HUD` PositionX / PositionY / FontSize work as before (the label's anchor, top centre).
+
 ## 0.14.2 — Separate shaman visuals
 
 - ShamanHeal used to play two things at once: the shaman's heal (green flames around you)
