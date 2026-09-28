@@ -37,8 +37,8 @@ namespace WeaponArts
         {
             _cfgHudX = Config.Bind("08 HUD", "PositionX", 0.5f,
                 new ConfigDescription("Horizontal centre of the label, fraction of screen width (0.5 = middle).", new AcceptableValueRange<float>(0f, 1f)));
-            _cfgHudY = Config.Bind("08 HUD", "PositionY", 0.76f,
-                new ConfigDescription("Top of the label, fraction of screen height. 0.76 sits above the stamina bar; ~0.95 goes below the adrenaline bar.", new AcceptableValueRange<float>(0f, 1f)));
+            _cfgHudY = Config.Bind("08 HUD", "PositionY", 0.81f,
+                new ConfigDescription("Top of the label, fraction of screen height measured from the TOP (0 = top edge, 1 = bottom). 0.81 sits above the stamina bar.", new AcceptableValueRange<float>(0f, 1f)));
             _cfgHudFont = Config.Bind("08 HUD", "FontSize", 16,
                 new ConfigDescription("Font size of the art name (the description is 4 smaller).", new AcceptableValueRange<int>(10, 32)));
         }
@@ -172,7 +172,7 @@ namespace WeaponArts
             int font = _cfgHudFont.Value;
             if (x != _labelX || y != _labelY)
             {
-                Vector2 a = new Vector2(x, y);
+                Vector2 a = new Vector2(x, 1f - y);   // the config counts from the top (as the old IMGUI label did), uGUI from the bottom
                 _label.anchorMin = a;
                 _label.anchorMax = a;
                 _label.anchoredPosition = Vector2.zero;

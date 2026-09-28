@@ -4,6 +4,11 @@
 
 The version is set in one place — `WeaponArtsPlugin.Version` in `src/WeaponArtsPlugin.cs`.
 
+## 0.15.1
+
+- Fixed: the label sat near the top of the screen. PositionY counts from the top again, as
+  before 0.15.0; the default is now 0.81.
+
 ## 0.15.0 — The HUD label is part of the game's HUD
 
 - The art label (name, state, description) is now a uGUI object in the game's HUD
