@@ -274,7 +274,14 @@ namespace WeaponArts
             }
             item = ProtoItem(zdo.GetInt(ZDOVars.s_rightItem, 0));
             quality = zdo.GetInt(ZDOVars.s_rightItemQuality, 1);
-            return ArtFor(item);
+            Art a = ArtFor(item);
+            if (a != null) return a;
+            // bows, crossbows and other left-handed weapons are carried in the left hand
+            ItemDrop.ItemData left = shield;
+            Art la = ArtFor(left);
+            if (la == null) return null;
+            item = left; quality = zdo.GetInt(ZDOVars.s_leftItemQuality, 1);
+            return la;
         }
 
         private const float ProxyShotWindow = 10f;

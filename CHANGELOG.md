@@ -4,6 +4,13 @@
 
 The version is set in one place — `WeaponArtsPlugin.Version` in `src/WeaponArtsPlugin.cs`.
 
+## 0.15.2
+
+- Fixed: a player without the mod holding a bow, a crossbow or another left-handed weapon
+  got "no art for this weapon" from the proxy. The proxy looked only at the right hand;
+  it now takes the left-hand weapon when the right hand has no art. A shield in the left
+  hand still means the taunt.
+
 ## 0.15.1
 
 - Fixed: the label sat near the top of the screen. PositionY counts from the top again, as
